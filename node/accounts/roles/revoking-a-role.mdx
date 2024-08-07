@@ -1,0 +1,41 @@
+---
+title: "Revoking A Role"
+---
+
+
+To revoke a role from an existing user, the `accounts.roles.revoke()` method can be utilized:
+
+/index.server.js
+
+```js
+    import joystick, { accounts } from '@joystick.js/node';
+
+    joystick.app({
+     accounts: {
+       events: {
+         on_logout: (user = {}) => {
+           accounts.roles.revoke(user?._id, 'active_account');
+         },
+       },
+     },
+    });
+```
+Above, we tap into the [account event hook](node/accounts/event-hooks) for the `on_logout()` event to revoke the temporary role of a user `active_account`. When a role is revoked, it is removed from the `roles` array on the user's document/row.
+
+## API Reference
+
+### accounts.roles.revoke()
+
+Function API
+
+    accounts.roles.revoke(user_id: string, role: string) => void;
+
+#### Arguments
+
+- user_id string Required
+
+  A `user_id` from your `users` collection/table in your database (e.g., `user._id` for MongoDB and `user.user_id` for PostgreSQL).
+
+- role string Required
+
+  A `string` defining the name of the role to revoke from the specified `user_id`.

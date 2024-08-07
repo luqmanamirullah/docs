@@ -1,0 +1,68 @@
+---
+title: "Log In"
+---
+
+
+To log in an existing user account, the `accounts.login()` method can be called from your component:
+
+/ui/pages/login/index.js
+```js
+    import joystick, { accounts } from '@joystick.js/ui';
+
+    const Login = joystick.component({
+      events: {
+        'submit form': (event = {}) => {
+          accounts.login({
+            email_address: event.target.email_address.value,
+            password: event.target.password.value,
+          }).then(() => {
+            location.pathname = '/dashboard';
+          });
+        },
+      },
+      render: () => {
+        return `
+          <div class="login">
+            <form>
+              <label>Email Address</label>
+              <input type="email" name="email_address" placeholder="Email Address" />
+              <label>Password</label>
+              <input type="password" name="password" placeholder="Password" />
+              <button type="submit">Log In</button>
+            </form>
+          </div>
+        `;
+      },
+    });
+
+    export default Login;
+```
+Above, we listen for a `submit` event on our `<form></form>` element, calling to `accounts.login()` to login an existing user. Because we expect `accounts.login()` to return a Promise, we use a `.then()` callback if the request is successful, redirecting to a hypothetical route that requires a logged in user.
+
+## API Reference
+
+### accounts.login()
+
+#### Function API
+
+Function API
+
+    accounts.login(options: object) => Promise;
+
+#### Arguments
+
+- options object
+
+  An `object` defining the parameters for the existing user account. Note: either `email_address` or `username` is required.
+
+  - email_address string
+
+    A `string` defining the email address for the existing user account.
+
+  - username string
+
+    A `string` defining the username for the existing user account.
+
+  - password string Required
+
+    A `string` defining the password for the existing user account.

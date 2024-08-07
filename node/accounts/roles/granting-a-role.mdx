@@ -1,0 +1,43 @@
+---
+title: "Granting A Role"
+---
+
+
+To grant a role to an existing user, the `accounts.roles.grant()` method can be utilized:
+
+/index.server.js
+
+```js
+    import joystick, { accounts } from '@joystick.js/node';
+
+    joystick.app({
+     accounts: {
+       events: {
+         on_login: ({ user )) => {
+           accounts.roles.grant(user?._id, 'active_account');
+         },
+       },
+     },
+    });
+```
+Above, we tap into the [account event hook](node/accounts/event-hooks) for the `on_login()` event to grant a temporary role to a user of `active_account`. When a role is granted to a user, it's added to an array on their document/row in the database called `roles`.
+
+When calling `accounts.roles.grant()`, if a role does not already exist in the `roles` collection/table for the app, Joystick will automatically create it.
+
+## API Reference
+
+### accounts.roles.grant()
+
+Function API
+
+    accounts.roles.grant(user_id: string, role: string) => void;
+
+#### Arguments
+
+- user_id string Required
+
+  A `user_id` from your `users` collection/table in your database (e.g., `user._id` for MongoDB and `user.user_id` for PostgreSQL).
+
+- role string Required
+
+  A `string` defining the name of the role to grant to the specified `user_id`.

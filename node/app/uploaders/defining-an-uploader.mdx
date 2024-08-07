@@ -1,0 +1,273 @@
+---
+title: "Defining An Uploader"
+---
+
+
+To assist with uploading files in your app, Joystick includes support for defining custom uploader endpoints that can target one or more providers (e.g., your app's local disk or Amazon S3) while also validating uploads based on their MIME type and size.
+
+Additionally, uploaders can help to customize the destination of files and their name in storage, as well as hook into before and after upload events where custom behavior can be defined (e.g., using `imagemagick` or `ffmpeg` to validate the contents of a media file).
+
+/index.server.js
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      uploaders: {
+        example_uploader: {
+          providers: ['local', 's3'],
+          local: {
+            path: 'uploads',
+          },
+          s3: {
+            region: 'us-east-2',
+            access_key_id: joystick?.settings?.private?.aws?.access_key_id,
+            secret_access_key: joystick?.settings?.private?.aws?.secret_access_key,
+            bucket: 'cheatcode-joystick',
+            acl: 'public-read',
+          },
+        }
+      },
+    });
+```
+Above, we've defined an uploader with two targets: our local server and Amazon S3. To define it, via the `uploaders` object set on the `options` object we pass to `joystick.app()`, we set a key/value pair where the `key` is the name of our uploader (`example_uploader`) and the `value` is an `object` defining the behavior of that uploader.
+
+First, we define which `providers` will receive our upload as an array of one or more `string`s specifying a [supported provider key](#supported-providers) . Next, we define configuration for each of the supported providers. First, for `local`, we need to specify a `path` or directory where our uploads will be stored. Here, we've chosen `uploads` which will store files in an `/uploads` folder at the root of our app.
+
+Next, for Amazon S3, we pass an object to `s3`, specifying the `region` (see [Amazon S3 bucket regions](https://docs.aws.amazon.com/general/latest/gr/s3.html#auto-endpoints-ap-s3)) for an S3 bucket we'd like to target, along with our `access_key_id`, `secret_access_key`, `bucket` name, and an `acl` (see [Amazon S3's "Canned ACLs" documentation](https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl) for supported values).
+
+To keep our `access_key_id` and `secret_access_key` secure (as opposed to hard-coding them inline), we pass a reference to values in our `settings.<env>.json` file where these can be stored safely (here, in the `private.aws` object). For example, in `development`, our `settings.development.json` file would look like this:
+
+/settings.development.json
+
+```js
+    {
+      "config": { ... },
+      "global": {},
+      "public": {},
+      "private": {
+        "aws": {
+          "access_key_id": "ABCD...",
+          "secret_access_key": "abcd123..."
+        }
+      }
+    }
+```
+With all of the above configured, now, when we [upload a file from the client](ui/uploading-files) Joystick will automatically pass that upload and relay a copy of it to our `local` and `s3` provider targets.
+
+## MIME Type validation
+
+To add MIME Type validation to your uploader, specify an `array` of [MIME-Type](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types) strings via the `mime_type` field on your uploader definition:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      uploaders: {
+        example_uploader: {
+          providers: ['local', 's3'],
+          local: { ... },
+          s3: { ... },
+          mime_types: ['image/png', 'image/jpg', 'image/jpeg', 'image/gif'],
+        }
+      },
+    });
+```
+Once specified, Joystick will automatically block any uploads where a passed file's MIME Type does not match one of the provided strings.
+
+## File size validation
+
+To add file size validation to your uploader, specify an `integer` representing a maximum file size in megabytes, or, a `function` returning an `integer` representing a maximum file size in megabytes via the `max_size_in_megabytes` field:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      uploaders: {
+        example_uploader: {
+          providers: ['local', 's3'],
+          local: { ... },
+          s3: { ... },
+          max_size_in_megabytes: 50,
+        }
+      },
+    });
+```
+Once specified, Joystick will automatically block any uploads where a passed file's size in megabytes is greater than the specified amount. If using a `function` to define `max_size_in_megabytes`, the function receives an `options` object containing any `input` passed from the client and the raw `upload` parsed by the server.
+
+## File name customization
+
+By default, Joystick will use the original name of the uploaded file when it's passed to a provider. To customize this value, the `file_name` `function` can be specified, returning a `string` containing the preferred path/name of the file when it's stored (relative to either the specified `local.path` or provided S3 bucket):
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      uploaders: {
+        example_uploader: {
+          providers: ['local', 's3'],
+          local: { ... },
+          s3: { ... },
+          file_name: ({ input, file_name, file_size, file_extension, mime_type }) => {
+            // NOTE: Omit any preceding slashes to ensure location is correct.
+            return `images/${file_name}`;
+          },
+        }
+      },
+    });
+```
+Above, we customize the file name by prefixing an `images/` sub-directory to the file name. Assuming we had a `local.path` of `uploads` and a file of `dog.jpg`, the final file name/path would be `/uploads/images/dog.jpg`. If using an Amazon S3 bucket we'd get `<bucket_name>/images/dog.jpg`.
+
+## on_before_upload
+
+To perform arbitrary work related to your upload _before_ it's handed off to your upload providers, the `on_before_upload()` function can be added:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      uploaders: {
+        example_uploader: {
+          providers: ['local', 's3'],
+          local: { ... },
+          s3: { ... },
+          on_before_upload: ({ input, req, uploads }) => {
+            // Handle any work before the upload here...
+          },
+        }
+      },
+    });
+```
+No return value is expected from `on_before_upload()`, however, if you're using this method for additional validation, in the event of an error, you can perform a `throw new Error('<error message goes here>')` to "abort" the upload. Any error thrown will be relayed to the client.
+
+## on_after_upload
+
+To perform arbitrary work related to your upload _after_ it's been uploaded to your upload providers, the `on_after_upload()` function can be added:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      uploaders: {
+        example_uploader: {
+          providers: ['local', 's3'],
+          local: { ... },
+          s3: { ... },
+          on_after_upload: ({ input, req, uploads }) => {
+            // Handle any work after the upload here...
+          },
+        }
+      },
+    });
+```
+No return value is expected from `on_after_upload()`. Because the upload has already been completed at this point, this method is useful for referencing the resulting upload URL (via the `uploads` array passed on the `options` object passed to `on_after_upload()`) or performing additional tasks like handing the upload off to an encoder API to generate different file formats for your app.
+
+## Supported providers
+
+Joystick supports the following upload providers:
+
+| Provider Name | Provider Key |
+| ------------- | ------------ |
+| Amazon S3     | `s3`         |
+| Local         | `local`      |
+
+## API Reference
+
+### Uploader Definition API
+
+Uploader Definition API
+
+```js
+    {
+      uploaders: {
+        [uploader_name: string]: {
+          providers: array[string],
+          local: {
+            path: string,
+          },
+          s3: {
+            region: string,
+            access_key_id: string,
+            secret_access_key: string,
+            bucket: string,
+            acl: string,
+          },
+          mime_types: array[string],
+          max_size_in_megabytes: integer || function,
+          file_name: (options: object) => void,
+          on_before_upload: (options: object) => void,
+          on_after_upload: (options: object) => void,
+        }
+      }
+    }
+```
+#### Properties
+
+- uploader_name object
+
+  The definition for the uploader.
+
+  - providers array\[string\] Required
+
+    An array of provider IDs that should receive this upload. See list of valid provider IDs under ["Supported Providers"](node/app/uploaders/defining-an-uploader#supported-providers).
+
+  - local object
+
+    Define the options for local uploads. If the `providers` array contains the `local` provider ID, this object is required.
+
+    - path string Required
+
+      If the `providers` array contains the `local` provider ID, `path` must be set to a local path in your project where files will be uploaded.
+
+  - s3 object
+
+    Define the options for Amazon S3 uploads. If the `providers` array contains the `s3` provider ID, this object is required.
+
+    - region string Required
+
+      A valid [Amazon S3 Region ID](https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_region) (e.g., `us-east-2`).
+
+    - access_key_id (alias: accessKeyId) string Required
+
+      The Amazon AWS Access Key ID obtained from the [AWS Console](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html#Using_CreateAccessKey).
+
+    - secret_access_key (alias: secretAccessKey) string Required
+
+      The Amazon AWS Secret Access Key obtained from the [AWS Console](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html#Using_CreateAccessKey).
+
+    - bucket string Required
+
+      The Amazon S3 bucket the file should be uploaded to.
+
+    - acl string Required
+
+      An Amazon S3 ["Canned ACL"](https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl) string defining the access permissions for files being uploaded.
+
+  - mime_types (alias: mimeTypes) array\[string\]
+
+    An array of [MIME Type](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types) strings defining the allowed file types for this uploader.
+
+  - max_size_in_megabytes (alias: maxSizeInMegabytes) integer || function
+
+    The max size allowed for files uploaded via this uploader. If using a \`function\`, the function receives an \`options\` object containing any \`input\` passed from the client and the raw \`upload\` parsed by the server.
+
+  - file_name function
+
+    If defined, a function that returns the file name and path for the upload as a string. Function receives an options object with any `input` from the client, the original `file_name` for the file, the `file_size`, the `file_extension`, and `mime_type`.
+
+  - on_before_upload function
+
+    A function that can be called _before_ the upload is accepted by the server. Called with options object with any `input` from the client, the inbound HTTP `req` object, and the `uploads` parsed by the server.
+
+  - on_after_upload function
+
+    A function that can be called _after_ the upload is completed by the server (for all providers). Called with options object with any `input` from the client, the inbound HTTP `req` object, and the resulting `uploads` array (including destination URLs for uploaded files).

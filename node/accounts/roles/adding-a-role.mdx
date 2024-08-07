@@ -1,0 +1,35 @@
+---
+title: "Adding A Role"
+---
+
+
+To add a role that's available for users, the `accounts.roles.add()` method can be utilized:
+
+/index.server.js
+
+```js
+    import joystick, { accounts } from '@joystick.js/node';
+
+    joystick.app({
+     ...
+    }).then(() => {
+      accounts.roles.add('manager');
+    });
+```
+Above, we tap into the `.then()` callback that's triggered internally by `joystick.app()` after our server starts up. Inside, we call to `accounts.roles.add('manager')` to create the `manager` role in our database. Keep in mind: this only creates the role in our database but _does not_ grant the role to any users. Roles must be [granted on a user-by-user basis](node/accounts/roles/granting-a-role).
+
+The purpose of the above `.add()` method is limited. It's best used in situations where roles need to be available for a feature like an admin UI (where an administrator can select roles to grant to a user) before they're actually _granted_ to users.
+
+## API Reference
+
+### accounts.roles.add()
+
+Function API
+
+    accounts.roles.add(role: string) => void;
+
+#### Arguments
+
+- role string Required
+
+  A `string` defining the name of the role to add.

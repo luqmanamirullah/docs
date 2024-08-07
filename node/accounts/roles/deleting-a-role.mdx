@@ -1,0 +1,35 @@
+---
+title: "Deleting A Role"
+---
+
+
+To delete a role that's available for users, the `accounts.roles.remove()` method can be utilized:
+
+/index.server.js
+
+```js
+    import joystick, { accounts } from '@joystick.js/node';
+
+    joystick.app({
+     ...
+    }).then(() => {
+      accounts.roles.remove('manager');
+    });
+```
+Above, we tap into the `.then()` callback that's triggered internally by `joystick.app()` after our server starts up. Inside, we call to `accounts.roles.remove('manager')` to delete the `manager` role in our database.
+
+When we run `accounts.roles.remove()`, the passed `role` is removed from the global `roles` collection/table, but also from all users who currently have it granted. This is a great way to migrate between roles, or, to bulk remove a role that no longer exists without having to worry about security leaks.
+
+## API Reference
+
+### accounts.roles.remove()
+
+Function API
+
+    accounts.roles.remove(role: string) => void;
+
+#### Arguments
+
+- role string Required
+
+  A `string` defining the name of the role to remove.
