@@ -50,30 +50,580 @@
   ],
   "navigation": [
     {
-      "group": "Get Started",
-      "pages": ["introduction", "quickstart", "development", "what is joystick"]
-    },
-    {
-      "group": "Essentials",
+      "group": "Index",
       "pages": [
-        "essentials/markdown",
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation",
-        "essentials/reusable-snippets"
-      ]
-    },
-    {
-      "group": "API Documentation",
-      "pages": ["api-reference/introduction"]
-    },
-    {
-      "group": "Endpoint Examples",
-      "pages": [
-        "api-reference/endpoint/get",
-        "api-reference/endpoint/create",
-        "api-reference/endpoint/delete"
+        {
+          "group": "What is Joystick?",
+          "pages": ["what-is-joystick?"]
+        },
+        {
+          "group": "Philosophy",
+          "pages": ["philosophy"]
+        },
+        {
+          "group": "Versioning",
+          "pages": ["versioning"]
+        },
+        {
+          "group": "License",
+          "pages": ["license"]
+        },
+        {
+          "group": "Port Occupied",
+          "pages": ["port-occupied"]
+        },
+        {
+          "group": "PostgreSQL Version",
+          "pages": ["postgresql-version"]
+        },
+        {
+          "group": "Introduction",
+          "pages": ["introduction"]
+        },
+        {
+          "group": "Installing Joystick",
+          "pages": ["installing-joystick"]
+        },
+        {
+          "group": "Installing Databases",
+          "pages": ["installing-databases"]
+        },
+        {
+          "group": "Creating Your First App",
+          "pages": ["creating-your-first-app"]
+        },
+        {
+          "group": "File Structure",
+          "pages": ["file-structure"]
+        },
+        {
+          "group": "Environment Settings",
+          "pages": ["environment-settings"]
+        },
+        {
+          "group": "Adding a Database",
+          "pages": ["adding-a-database"]
+        },
+        {
+          "group": "Creating Fixture Data",
+          "pages": ["creating-fixture-data"]
+        },
+        {
+          "group": "Defining a Server",
+          "pages": ["defining-a-server"]
+        },
+        {
+          "group": "Defining a Route",
+          "pages": ["defining-a-route"]
+        },
+        {
+          "group": "Defining a Component",
+          "pages": ["defining-a-component"]
+        },
+        {
+          "group": "Rendering a Component",
+          "pages": ["rendering-a-component"]
+        },
+        {
+          "group": "Linking Between Routes",
+          "pages": ["linking-between-routes"]
+        },
+        {
+          "group": "Composing Components",
+          "pages": ["composing-components"]
+        },
+        {
+          "group": "Defining a Getter",
+          "pages": ["defining-a-getter"]
+        },
+        {
+          "group": "Defining a Setter",
+          "pages": ["defining-a-setter"]
+        },
+        {
+          "group": "Registering Your API",
+          "pages": ["registering-your-api"]
+        },
+        {
+          "group": "Getting Data",
+          "pages": ["getting-data"]
+        },
+        {
+          "group": "Setting Data",
+          "pages": ["setting-data"]
+        },
+        {
+          "group": "Going Further",
+          "pages": ["going-further"]
+        },
+        {
+          "group": "Defining Settings",
+          "pages": ["defining-settings"]
+        },
+        {
+          "group": "build",
+          "pages": ["build"]
+        },
+        {
+          "group": "create",
+          "pages": ["create"]
+        },
+        {
+          "group": "logout",
+          "pages": ["logout"]
+        },
+        {
+          "group": "push",
+          "pages": ["push"]
+        },
+        {
+          "group": "start",
+          "pages": ["start"]
+        },
+        {
+          "group": "test",
+          "pages": ["test"]
+        },
+        {
+          "group": "update",
+          "pages": ["update"]
+        },
+        {
+          "group": "use",
+          "pages": ["use"]
+        },
+        {
+          "group": "Providers",
+          "pages": ["providers"]
+        },
+        {
+          "group": "Connecting a Remote Database",
+          "pages": ["connecting-a-remote-database"]
+        },
+        {
+          "group": "Connecting Multiple Databases",
+          "pages": ["connecting-multiple-databases"]
+        },
+        {
+          "group": "Queues",
+          "pages": ["queues"]
+        },
+        {
+          "group": "Sessions",
+          "pages": ["sessions"]
+        },
+        {
+          "group": "Users",
+          "pages": ["users"]
+        },
+        {
+          "group": "Adding a Role",
+          "pages": ["adding-a-role"]
+        },
+        {
+          "group": "Deleting a Role",
+          "pages": ["deleting-a-role"]
+        },
+        {
+          "group": "Granting a Role",
+          "pages": ["granting-a-role"]
+        },
+        {
+          "group": "Revoking a Role",
+          "pages": ["revoking-a-role"]
+        },
+        {
+          "group": "Event Hooks",
+          "pages": ["event-hooks"]
+        },
+        {
+          "group": "Log In",
+          "pages": ["log-in"]
+        },
+        {
+          "group": "Recover Password",
+          "pages": ["recover-password"]
+        },
+        {
+          "group": "Reset Password",
+          "pages": ["reset-password"]
+        },
+        {
+          "group": "Sign Up",
+          "pages": ["sign-up"]
+        },
+        {
+          "group": "Validating Signup Metadata",
+          "pages": ["validating-signup-metadata"]
+        },
+        {
+          "group": "Authorization",
+          "pages": ["authorization"]
+        },
+        {
+          "group": "Getters",
+          "pages": ["getters"]
+        },
+        {
+          "group": "Middleware",
+          "pages": ["middleware"]
+        },
+        {
+          "group": "Registering Getters & Setters",
+          "pages": ["registering-getters-&-setters"]
+        },
+        {
+          "group": "Sanitization",
+          "pages": ["sanitization"]
+        },
+        {
+          "group": "Setters",
+          "pages": ["setters"]
+        },
+        {
+          "group": "Validating Input",
+          "pages": ["validating-input"]
+        },
+        {
+          "group": "Defining a Cron Job",
+          "pages": ["defining-a-cron-job"]
+        },
+        {
+          "group": "Registering Cron Jobs",
+          "pages": ["registering-cron-jobs"]
+        },
+        {
+          "group": "Defining a Database for Queues",
+          "pages": ["defining-a-database-for-queues"]
+        },
+        {
+          "group": "Defining a Queue",
+          "pages": ["defining-a-queue"]
+        },
+        {
+          "group": "External Queues",
+          "pages": ["external-queues"]
+        },
+        {
+          "group": "Queueing a Job",
+          "pages": ["queueing-a-job"]
+        },
+        {
+          "group": "Registering Queues",
+          "pages": ["registering-queues"]
+        },
+        {
+          "group": "Accessing Databases",
+          "pages": ["accessing-databases"]
+        },
+        {
+          "group": "Advanced Routes",
+          "pages": ["advanced-routes"]
+        },
+        {
+          "group": "Basic Routes",
+          "pages": ["basic-routes"]
+        },
+        {
+          "group": "req.context.user",
+          "pages": ["req.context.user"]
+        },
+        {
+          "group": "req.context.if_logged_in()",
+          "pages": ["req.context.if_logged_in()"]
+        },
+        {
+          "group": "req.context.if_not_logged_in()",
+          "pages": ["req.context.if_not_logged_in()"]
+        },
+        {
+          "group": "res.render()",
+          "pages": ["res.render()"]
+        },
+        {
+          "group": "Defining an Uploader",
+          "pages": ["defining-an-uploader"]
+        },
+        {
+          "group": "Defining a Server",
+          "pages": ["defining-a-server"]
+        },
+        {
+          "group": "Sending a Websocket Message",
+          "pages": ["sending-a-websocket-message"]
+        },
+        {
+          "group": "Defining an App Server",
+          "pages": ["defining-an-app-server"]
+        },
+        {
+          "group": "Defining a Base Template",
+          "pages": ["defining-a-base-template"]
+        },
+        {
+          "group": "Defining an Email Template",
+          "pages": ["defining-an-email-template"]
+        },
+        {
+          "group": "Sending an Email",
+          "pages": ["sending-an-email"]
+        },
+        {
+          "group": "index.html",
+          "pages": ["index.html"]
+        },
+        {
+          "group": "Actions",
+          "pages": ["actions"]
+        },
+        {
+          "group": "Content Security Policy (CSP)",
+          "pages": ["content-security-policy-(csp)"]
+        },
+        {
+          "group": "CSRF Protection",
+          "pages": ["csrf-protection"]
+        },
+        {
+          "group": "Database Indexes",
+          "pages": ["database-indexes"]
+        },
+        {
+          "group": "Escaping HTML",
+          "pages": ["escaping-html"]
+        },
+        {
+          "group": "Fixtures",
+          "pages": ["fixtures"]
+        },
+        {
+          "group": "Internationalization (i18n)",
+          "pages": ["internationalization-(i18n)"]
+        },
+        {
+          "group": "Middleware",
+          "pages": ["middleware"]
+        },
+        {
+          "group": "Node.js Event Listeners",
+          "pages": ["node.js-event-listeners"]
+        },
+        {
+          "group": "Origin",
+          "pages": ["origin"]
+        },
+        {
+          "group": "Push",
+          "pages": ["push"]
+        },
+        {
+          "group": "Schema Validation",
+          "pages": ["schema-validation"]
+        },
+        {
+          "group": "SQL",
+          "pages": ["sql"]
+        },
+        {
+          "group": "Log In",
+          "pages": ["log-in"]
+        },
+        {
+          "group": "Recover Password",
+          "pages": ["recover-password"]
+        },
+        {
+          "group": "Reset Password",
+          "pages": ["reset-password"]
+        },
+        {
+          "group": "Sign Up",
+          "pages": ["sign-up"]
+        },
+        {
+          "group": "get()",
+          "pages": ["get()"]
+        },
+        {
+          "group": "set()",
+          "pages": ["set()"]
+        },
+        {
+          "group": "component()",
+          "pages": ["component()"]
+        },
+        {
+          "group": "each()",
+          "pages": ["each()"]
+        },
+        {
+          "group": "i18n()",
+          "pages": ["i18n()"]
+        },
+        {
+          "group": "when()",
+          "pages": ["when()"]
+        },
+        {
+          "group": "Rendering HTML",
+          "pages": ["rendering-html"]
+        },
+        {
+          "group": "on_before_mount",
+          "pages": ["on_before_mount"]
+        },
+        {
+          "group": "on_before_render",
+          "pages": ["on_before_render"]
+        },
+        {
+          "group": "on_before_unmount",
+          "pages": ["on_before_unmount"]
+        },
+        {
+          "group": "on_mount",
+          "pages": ["on_mount"]
+        },
+        {
+          "group": "on_refetch_data",
+          "pages": ["on_refetch_data"]
+        },
+        {
+          "group": "on_render",
+          "pages": ["on_render"]
+        },
+        {
+          "group": "on_update_props",
+          "pages": ["on_update_props"]
+        },
+        {
+          "group": "Component Types",
+          "pages": ["component-types"]
+        },
+        {
+          "group": "CSS",
+          "pages": ["css"]
+        },
+        {
+          "group": "Data",
+          "pages": ["data"]
+        },
+        {
+          "group": "Default Props",
+          "pages": ["default-props"]
+        },
+        {
+          "group": "DOMNode",
+          "pages": ["domnode"]
+        },
+        {
+          "group": "Events",
+          "pages": ["events"]
+        },
+        {
+          "group": "Form Validation",
+          "pages": ["form-validation"]
+        },
+        {
+          "group": "Methods",
+          "pages": ["methods"]
+        },
+        {
+          "group": "State",
+          "pages": ["state"]
+        },
+        {
+          "group": "Timers",
+          "pages": ["timers"]
+        },
+        {
+          "group": "URL",
+          "pages": ["url"]
+        },
+        {
+          "group": "Websockets",
+          "pages": ["websockets"]
+        },
+        {
+          "group": "Wrapper",
+          "pages": ["wrapper"]
+        },
+        {
+          "group": "API Reference",
+          "pages": ["api-reference"]
+        },
+        {
+          "group": "Environment Settings",
+          "pages": ["environment-settings"]
+        },
+        {
+          "group": "External",
+          "pages": ["external"]
+        },
+        {
+          "group": "Global State",
+          "pages": ["global-state"]
+        },
+        {
+          "group": "Uploading Files",
+          "pages": ["uploading-files"]
+        },
+        {
+          "group": "settings.test.json",
+          "pages": ["settings.test.json"]
+        },
+        {
+          "group": "Writing Tests",
+          "pages": ["writing-tests"]
+        },
+        {
+          "group": "Organizing Tests",
+          "pages": ["organizing-tests"]
+        },
+        {
+          "group": "Accessing Databases in Tests",
+          "pages": ["accessing-databases-in-tests"]
+        },
+        {
+          "group": "Unit Testing Functions",
+          "pages": ["unit-testing-functions"]
+        },
+        {
+          "group": "Testing Accounts",
+          "pages": ["testing-accounts"]
+        },
+        {
+          "group": "Testing API Endpoints",
+          "pages": ["testing-api-endpoints"]
+        },
+        {
+          "group": "Testing Components",
+          "pages": ["testing-components"]
+        },
+        {
+          "group": "Testing Email",
+          "pages": ["testing-email"]
+        },
+        {
+          "group": "Testing Queues",
+          "pages": ["testing-queues"]
+        },
+        {
+          "group": "Testing Routes",
+          "pages": ["testing-routes"]
+        },
+        {
+          "group": "Testing Uploaders",
+          "pages": ["testing-uploaders"]
+        },
+        {
+          "group": "Testing Websockets",
+          "pages": ["testing-websockets"]
+        },
+        {
+          "group": "Tracking Function Calls",
+          "pages": ["tracking-function-calls"]
+        }
       ]
     }
   ],
