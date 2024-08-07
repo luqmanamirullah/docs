@@ -1,0 +1,28 @@
+---
+title: "Users"
+---
+
+
+To enable support for user accounts on a database, in your `settings.<env>.json` file add the `"users": true` flag to a database config object:
+
+/settings.development.json
+
+```json
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "users": true,
+            "options": {}
+          }
+        ],
+        ...
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+```    
+
+Once added, all calls to `accounts` methods will be automatically mapped to the specified database.

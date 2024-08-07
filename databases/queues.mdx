@@ -1,0 +1,28 @@
+---
+title: "Queues"
+---
+
+
+To enable support for [queues](node/app/queues/defining-a-queue) on a database, in your `settings.<env>.json` file add the `"queues": true` flag to a database config object:
+
+/settings.development.json
+
+```json
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "queues": true,
+            "options": {}
+          }
+        ],
+        ...
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+```    
+
+Once added, any queue defined in the app will automatically have its jobs routed to the specified database. If a queue is _not_ [defined as external](node/app/queues/external-queues) in the app, the app will also read jobs _from_ the specified database and run them internally.

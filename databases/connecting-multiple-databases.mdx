@@ -1,0 +1,109 @@
+---
+title: "Connecting Multiple Databases"
+---
+
+
+Joystick supports connecting multiple databases from different providers to your app. Instead of being able to communicate with a single database, your app can send data where it's best handled. In a Joystick app, you can add multiple databases from different providers (e.g., MongoDB and PostgreSQL), or, you can add multiple from the same provider.
+
+## From Different Providers
+
+To add databases from different providers, add one object to the `config.databases` array for each provider:
+
+/settings..json
+
+```json
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "users": true,
+            "options": {}
+          },
+          {
+            "provider": "postgresql",
+            "users": true,
+            "options": {}
+          }
+        ],
+        "i18n": { ... },
+        "middleware": {},
+        "email": { ... }
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+```    
+
+In `development`, Joystick will attempt to start each database defined in the `config.databases` array locally (assuming the database has already been installed), starting databases from the current app port (default of `2600`) plus `10` (the default database port starts at `2610`). In the example above, we'd expect MongoDB to be started on port `2610` and PostgreSQL to be started on port `2611`.
+
+In your app, the driver for each database will be mapped to `process.databases.<provider_name>` (e.g., `process.databases.mongodb` or `process.databases.postgresql`).
+
+## From Identical Providers
+
+If you'd like to use multiple databases with the same `provider` key, this is supported, but with some caveats related to naming:
+
+/settings..json
+
+```json
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "users": true,
+            "options": {}
+          },
+          {
+            "provider": mongodb",
+            "users": true,
+            "options": {}
+          }
+        ],
+        "i18n": { ... },
+        "middleware": {},
+        "email": { ... }
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+```    
+
+In the above example, assuming an app port of `2600`, we'd expect to MongoDB servers to be started for us: one on port `2610` and one on `2611`. Because both are using the same provider name, though, Joystick will automatically map these databases to `process.databases` using the naming convention `process.databases.<provider_name>_<database_port>`. In this case, we'd expect to get drivers for each database at `process.databases.mongodb_2610` and `process.databases.mongodb_2611`.
+
+### Specifying a name
+
+Because tying the name of the driver in your code to the port number isn't ideal—especially in a non-development environment—when using multiple databases of the same provider, you can specify a `name` property in the config:
+
+/settings..json
+
+```json
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "name": "user_data",
+            "users": true,
+            "options": {}
+          },
+          {
+            "provider": mongodb",
+            "name": "analytics_data",
+            "users": true,
+            "options": {}
+          }
+        ],
+        "i18n": { ... },
+        "middleware": {},
+        "email": { ... }
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+```    
+
+When a `name` is provided, the database will be mapped using that name. In the example above, we would expect to get drivers mapped to `process.databases.mongodb.user_data` and `process.databases.mongodb.analytics_data`.
