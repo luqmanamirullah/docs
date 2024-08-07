@@ -10,6 +10,7 @@ By default, Joystick initializes a cache for you and makes it accessible as a na
 
 /ui/pages/store/index.js
 
+```js
     import joystick, { global_state } from "@joystick.js/ui-canary";
     import Cart from '../../components/cart/index.js';
 
@@ -42,7 +43,7 @@ By default, Joystick initializes a cache for you and makes it accessible as a na
     });
 
     export default Store;
-
+```
 Above, we've imported the named export `global_store` from `@joystick.js/ui`. Down in our `render()` function, we've set up a mock "store" with three items as `<button></button>` tags. Up in our `events`, we listen for a `click` event on each button. When there's a click, we call to `global_state.set()` passing a function that will be responsible for "compiling" the updated version of our global state.
 
 From it, we `return` an object representing the new global state. First, we copy the current value of `state` (if one is present) and then we set the value of `cart` to an array containing two things:
@@ -54,6 +55,7 @@ This will get items added to our global state. Next, let's wire up the `Cart` co
 
 /ui/components/cart/index.js
 
+```js
     import joystick, { global_state } from '@joystick.js/ui-canary';
 
     const Cart = joystick.component({
@@ -101,7 +103,7 @@ This will get items added to our global state. Next, let's wire up the `Cart` co
     });
 
     export default Cart;
-
+  ```
 Again, importing `global_state` from `@joystick.js/ui`, in this component, we add a `change` event listener to our `global_state` via the `.on()` method.
 
 The `.on()` method takes two arguments: an `event` to listen for and a `callback` to call when that event occurs. Here, we just want to be notified of a `change` to the global state and copy the `state.cart` value over to the local or _component_ state so that we can render our cart's items.
@@ -110,6 +112,7 @@ The `.on()` method takes two arguments: an `event` to listen for and a `callback
 
 Object API
 
+```js
     global_state: {
       get: (path: string) => object,
       on: (
@@ -122,7 +125,7 @@ Object API
       ) => void,
       unset: (path: string, user_event_label: string) => event,
     }
-
+```
 #### Parameters
 
 - get function

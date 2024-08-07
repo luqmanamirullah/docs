@@ -19,6 +19,7 @@ To generate an in-memory instance of your component for testing, call the `test.
 
 /tests/ui/pages/index/index.test.js
 
+```js
     import test from '@joystick.js/test';
 
     test.that('the index page renders as expected', async (assert = {}) => {
@@ -32,7 +33,7 @@ To generate an in-memory instance of your component for testing, call the `test.
 
       assert.is(true, true);
     });
-
+```
 Above, we've defined a test with the `test.that()` method and inside of the test's callback, we create a variable `component` and set it to a call to `test.render()` (we expect a Promise to be returned so we place `async` on the callback for our test and prefix our call with `await`).
 
 To `test.render()`, as the first argument, we pass the path to the Joystick component we'd like to test: `ui/pages/index/index.js`. As the second argument, we pass an options object containing the default `props`, default `state`, and some render `options` (here we force the `language` for this test to be `en-US`).
@@ -45,6 +46,7 @@ On the object returned by `test.render()`, we can retrieve the rendered HTML for
 
 /tests/ui/pages/index/index.test.js
 
+```js
     import test from '@joystick.js/test';
 
     test.that('the index page renders as expected', async (assert = {}) => {
@@ -60,7 +62,7 @@ On the object returned by `test.render()`, we can retrieve the rendered HTML for
 
       assert.is(html?.includes('A full-stack JavaScript framework for building web apps and websites.'), true);
     });
-
+```
 When we call to `component.render_to_html()` we expect to get back a string of HTML returned from calling the component's `render()` method internally.
 
 ## Testing DOM events
@@ -69,6 +71,7 @@ When we think about testing DOM events on components in Joystick, what we really
 
 /tests/ui/pages/index/index.test.js
 
+```js
     import test from '@joystick.js/test';
 
     test.that('the index page renders as expected', async (assert = {}) => { ... });
@@ -86,7 +89,7 @@ When we think about testing DOM events on components in Joystick, what we really
 
       assert.is(!!component.state.current_time, true);
     });
-
+```
 Above, we assume that our component has an event listener defined `click button` listening for a `click` event on a `button` element in our component. Inside of that event listener, we expect a call to `instance.set_state({ current_time: new Date().getTime() })`. For our test, we just want to confirm that _something_ was set on `state.current_time` so we do a double-bang check on the value to assert that it exists.
 
 ## Testing component methods
@@ -95,6 +98,7 @@ Depending on the implementation of our component, we may have one or more [custo
 
 /tests/ui/pages/index/index.test.js
 
+```js
     import test from '@joystick.js/test';
 
     test.that('the reverse_name() method reverses the name', async (assert = {}) => { ... });
@@ -114,7 +118,7 @@ Depending on the implementation of our component, we may have one or more [custo
 
       assert.is(reversed_name === 'nayR', true);
     });
-
+```
 Above, we anticipate a method `reverse_name()` that takes in a name as a string and reverses it. To perform the test, we utilize the `component.test.method()` function which takes in the name of the method we want to call as a `string` for the first argument and an array of arguments to pass to the method as an `array` (the array contents are spread on the call to the method like `method_to_call(...method_args)` behind the scenes).
 
 In response, we expect the return value of the method and then compare the result to our expectation to run our assertion.
@@ -125,6 +129,7 @@ If a component utilizes the [data function](ui/components/data) to fetch data wh
 
 /tests/ui/pages/index/index.test.js
 
+```js
     import test from '@joystick.js/test';
 
     test.that('the reverse_name() method reverses the name', async (assert = {}) => { ... });
@@ -146,7 +151,7 @@ If a component utilizes the [data function](ui/components/data) to fetch data wh
 
       assert.is(typeof data?.stars === 'integer', true);
     });
-
+```
 Above, we call to `test.render()` to create our component instance then call the `component.test.data()` method off of that instance. Because we expect our `data` function to return a Promise (due to its implementation), we `await` the call to `component.test.data()`. Next, we verify that the `data` value we received back has a `stars` field equal to an integer (the default Joystick index page fetches the current Github stars for the project repo).
 
 ## API Reference

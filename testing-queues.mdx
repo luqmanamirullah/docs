@@ -8,6 +8,7 @@ To test that specific jobs defined in a queue are working as expected, you can u
 
 /tests/queues/tasks.js
 
+```js
     import test from '@joystick.js/test';
 
     test.that('queue runs the tasks_report job', async (assert = {}) => {
@@ -26,7 +27,7 @@ To test that specific jobs defined in a queue are working as expected, you can u
 
       assert.is(!!report, true);
     });
-
+```
 Above, using the `test.queues.job()` method, we make a call directly to the `tasks_report` job in our `tasks` queue. To verify our call succeeded, we check that the expected side-effect of a report being added to the `task_reports` collection in our database exists for the `user_id` on the specified `week`.
 
 The idea here is that when testing a job, we're _not_ testing the queue functionality itself (i.e., that the job runs at a specific time). Instead, we're testing that the work being done at whatever time the job runs, runs as expected and creates the intended result.

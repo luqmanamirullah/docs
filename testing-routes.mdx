@@ -13,14 +13,14 @@ Depending on the nature of your app, it can be helpful to author tests for indiv
 - `test.routes.put()` performs an HTTP PUT request.
 
 /tests/index.server.js
-
+```js
     import test from '@joystick.js/test';
 
     test.that('the /api/books route returns books', async (assert = {}) => {
       const response = await test.routes.get('/api/books');
       assert.is(response?.body?.books?.length === 25, true);
     });
-
+```
 Above, we create a mock test leveraging the `test.routes.get()` method, performing an HTTP GET request to the `/api/books` endpoint in our route. We assume that this endpoint will return us an array of 25 books and write our assertion to verify this.
 
 ## Passing a body
@@ -29,6 +29,7 @@ To pass a body with your request (assuming you're performing an HTTP request oth
 
 /tests/index.server.js
 
+```js
     import test from '@joystick.js/test';
 
     test.that('the /api/books route returns books', async (assert = {}) => {
@@ -45,7 +46,7 @@ To pass a body with your request (assuming you're performing an HTTP request oth
 
       assert.is(existing_book && existing_book?.author === 'Gene Kranz', true);
     });
-
+```
 Above, we run a `.post()` request to the `/api/books` route in our app, passing a `body` with a `title` and `author` for a book we'd like to create. To verify that the route worked as expected (hypothetically, we're assuming it will perform a database insert behind the scenes), we check our database for a book with the `title` we passed via the body.
 
 ## Passing headers
@@ -53,6 +54,7 @@ Above, we run a `.post()` request to the `/api/books` route in our app, passing 
 If you need to test a route that relies on custom HTTP headers, you can pass a `headers` object in the options object passed to your `test.routes` method:
 
 /tests/index.server.js
+```js
 
     import test from '@joystick.js/test';
 
@@ -73,7 +75,7 @@ If you need to test a route that relies on custom HTTP headers, you can pass a `
 
       assert.is(existing_book && existing_book?.author === 'Gene Kranz', true);
     });
-
+```
 Above, we run a `.post()` request to the `/api/books` route in our app, passing a `body` with a `title` and `author` for a book we'd like to create and an `x-api-key` header with an API key that we assume our API will require in order to create our book. To verify that the route worked as expected (hypothetically, we're assuming it will perform a database insert behind the scenes), we check our database for a book with the `title` we passed via the body.
 
 ## Passing query params
@@ -82,6 +84,7 @@ If you need to test a route that relies on query params, you can pass a `query` 
 
 /tests/index.server.js
 
+```js
     import test from '@joystick.js/test';
 
     test.that('the /api/books route returns books', async (assert = {}) => {
@@ -93,7 +96,7 @@ If you need to test a route that relies on query params, you can pass a `query` 
 
       assert.is(response?.body?.books?.length === 10, true);
     });
-
+```
 Above we pass a `limit` query param via the `query` object passed to our `test.routes.get()` method's options object. To verify the query param was respected, we check that length of the `books` array in the response body matches the passed `limit` query parameter.
 
 ## Adding a user
@@ -102,6 +105,7 @@ If the route your testing calls for it, a `user` object can be passed along with
 
 /tests/index.server.js
 
+```js
     import test from '@joystick.js/test';
 
     test.that('the /api/books route returns books', async (assert = {}) => {
@@ -116,7 +120,7 @@ If the route your testing calls for it, a `user` object can be passed along with
 
       assert.is(response?.body?.books?.length === 25, true);
     });
-
+```
 ## Function API
 
 ### test.routes.get()

@@ -49,10 +49,12 @@ test.that("add function adds two numbers together", async (assert = {}) => {
 
 // NOTE: test.after() runs after _all_ tests in the file are complete.
 // To run code after _each_ test, test.after_each() can be used instead.
+
+```javascript
 test.after(async () => {
 await process.databases.mongodb.collection('posts').deleteMany({});
 });
-
+```
 This ensures that you don't overwhelm the machine where your tests are being run and future test runs beyond the current file aren't tripped up by unexpected data.
 
 ```

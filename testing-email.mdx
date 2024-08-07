@@ -10,6 +10,7 @@ To verify that emails are sending as expected, it's recommended that your test c
 
 /tests/index.server.js
 
+```js
     import test from '@joystick.js/test';
 
     test.that('the /api/books route returns books', async (assert = {}) => {
@@ -26,3 +27,4 @@ To verify that emails are sending as expected, it's recommended that your test c
 
       assert.is(function_calls[0]?.args[0]?.to, 'example@test.com');
     });
+    ```

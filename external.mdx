@@ -12,6 +12,7 @@ To track a third-party library, you can utilize the `joystick.external.track()` 
 
 /ui/pages/index/index.js
 
+```js
     import joystick from '@joystick.js/ui';
 
     const Index = joystick.component({
@@ -27,7 +28,7 @@ To track a third-party library, you can utilize the `joystick.external.track()` 
     });
 
     export default Index;
-
+```
 `joystick.external.track()` takes two arguments: the `name` of the library you want to track and the data you want to track (e.g., a class instance or a configuration object). Once tracked, you will have global access to that library at `window.joystick._external.<name>` (e.g., `window.joystick._external.stripe`).
 
 ## Retrieving a tracked dependency
@@ -38,11 +39,12 @@ While you _can_ access `window.joystick._external.<name>` directly, for the sake
 
 Object API
 
+```js
     external: {
       track: (library_name: string, value_to_track: any) => void,
       get: (library_name: string) => any,
     }
-
+```
 #### Parameters
 
 - track function
