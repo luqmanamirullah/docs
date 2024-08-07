@@ -1,0 +1,20 @@
+---
+title: "Accessing Databases"
+---
+
+# Accessing Databases
+
+While it's recommended to isolate database calls to your [getters](node/app/api/getters) and [setters](node/app/api/setters) in your API, if an implementation requires it (e.g., when offering a public developer API), your database can be accessed in one of two ways in your route: via the global `process.databases.<provider>` object, or, via its alias at `req.context.<provider>`. Both methods are identical and are offered independently for convenience.
+
+/index.server.js
+
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: {
+        '/': async (req = {}, res = {}) => {
+           const books = await process.databases.mongodb.collection('books').find().toArray();
+           return res.status(200).send(books);
+        },
+      },
+    });

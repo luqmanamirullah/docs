@@ -1,0 +1,111 @@
+---
+title: "State"
+---
+
+# State
+
+When rendering Joystick components, state can be used to render arbitrary data and control the display of the component. There are three options for interacting with state in a Joystick component:
+
+- Setting a default value for state via the `state` property on the component options.
+- Setting state dynamically via the `.set_state()` method on the component instance.
+- Reading the current value of `state` via the component instance.
+
+State should be used thoughtfully, as whenever state changes, a re-render of the entire component is triggered.
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      state: {
+        tab: 'books',
+      },
+      events: {
+        'click [data-tab]': (event = {}, instance = {}) => {
+          instance.set_state({ tab: event.target.getAttribute('data-tab') });
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          <div class="media">
+            <ul class="tabs">
+              <li data-tab="books" class="${state.tab === 'books' ? 'is-active' : ''}">Books</li>
+              <li data-tab="movies" class="${state.tab === 'movies' ? 'is-active' : ''}">Movies</li>
+              <li data-tab="games" class="${state.tab === 'games' ? 'is-active' : ''}">Games</li>
+            </ul>
+            ${when(state.tab === 'books', `
+              <p>Books list...</p>
+            `)}
+            ${when(state.tab === 'movies', `
+              <p>Movies list...</p>
+            `)}
+            ${when(state.tab === 'games', `
+              <p>Games list...</p>
+            `)}
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+
+Above, we've demonstrated all three variants of interacting with state on a Joystick component. First, at the top of our component options, we've defined a default value for `state` via the `state` object. On it, we've defined a single state value `tab` which sets a default state value for `state.tab` on the component.
+
+Next, down in our `events` object, we've defined an event listener for `click` events on elements with the attribute `data-tab`. When any of those are clicked, we call to `instance.set_state()`, passing an object with the state value(s) we'd like to set (in this case `tab`).
+
+Down in our `render()` function, we destructure `state` from the component `instance` passed to our `render()` function and use it to control the rendering of HTML for our component.
+
+## Setting default state via function
+
+Instead of using an `object` for the default `state` value on our component, we can instead specify a `function` which returns an `object`:
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      state: (instance = {}) => {
+        return {
+          tab: instance?.props?.tab || 'books',
+        };
+      },
+      events: {
+        'click [data-tab]': (event = {}, instance = {}) => {
+          instance.set_state({ tab: event.target.getAttribute('data-tab') });
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          <div class="media">
+            <ul class="tabs">
+              <li data-tab="books" class="${state.tab === 'books' ? 'is-active' : ''}">Books</li>
+              <li data-tab="movies" class="${state.tab === 'movies' ? 'is-active' : ''}">Movies</li>
+              <li data-tab="games" class="${state.tab === 'games' ? 'is-active' : ''}">Games</li>
+            </ul>
+            ${when(state.tab === 'books', `
+              <p>Books list...</p>
+            `)}
+            ${when(state.tab === 'movies', `
+              <p>Movies list...</p>
+            `)}
+            ${when(state.tab === 'games', `
+              <p>Games list...</p>
+            `)}
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+
+Above, using a `function` value instead of an object, we return our default `state` object, but reference the `instance.props` value via the component `instance` passed to the `function`.
+
+## API Reference
+
+Object API
+
+    // Object-based API for default state
+    state: object;
+
+    // Function-based API for default state
+    state: (instance: object) => object;

@@ -1,0 +1,51 @@
+---
+title: "Req.Context.If_not_logged_in()"
+---
+
+# req.context.if\_not\_logged\_in()
+
+To aid in the process of routing users to the correct location, Joystick includes a helper function `req.context.if_not_logged_in()` to trigger custom behavior if a user is not logged in.
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+    
+    joystick.app({
+      routes: {
+        '/dashboard': async (req = {}, res = {}) => {
+          req.context.if_not_logged_in('/login', () => {
+            res.render('ui/pages/dashboard/index.js');
+          };)
+        },
+        '/billing': async (req = {}, res = {}) => {
+          req.context.if_not_logged_in('/dashboard', () => {
+            res.render('ui/pages/billing/index.js');
+          };)
+        },
+      },
+    });
+```    
+
+Above, we call to `req.context.if_not_logged_in()`, first passing the route that the user should be redirected to if they are _not_ logged in, and second, a callback function describing what to do if they _are_ logged in.
+
+## API Reference
+
+### req.context.if\_not\_logged\_in()
+
+#### Function API
+
+Function API
+
+    req.context.if_not_logged_in(redirect_path: string, callback: function) => void;
+    
+
+#### Arguments
+
+*   redirect\_path string
+    
+    If there is not a current user, redirect them to this path.
+    
+*   callback function
+    
+    If there is a current user, call this function.

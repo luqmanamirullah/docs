@@ -1,0 +1,27 @@
+---
+title: "Sessions"
+---
+
+# Sessions
+
+To enable support for [sessions and CSRF tokens](node/csrf-protection) to a database, in your `settings.<env>.json` file add the `"sessions": true` flag to a database config object:
+
+/settings.development.json
+
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "sessions": true,
+            "options": {}
+          }
+        ],
+        ...
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+
+Once added, a CSRF token will automatically be injected into all pages rendered via [res.render()](node/app/routes/res-render) and validated on all getter and setter requests.

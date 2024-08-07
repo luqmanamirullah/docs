@@ -1,0 +1,82 @@
+---
+title: "Component()"
+---
+
+# component()
+
+The `component()` render method is a function that takes in a Joystick component definition along with some (optional) `props` and renders that component instance to HTML. It's intent is to render a child component into a parent component.
+
+/ui/components/child/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Child = joystick.component({
+      render: () => {
+        return `
+          <div class="parent-component">
+            <h2>Child Component</h2>
+          </div>
+        `;
+      },
+    });
+
+    export default Child;
+```
+Given the above `Child` component, we can render it into another component (`Parent`) using the `component()` render method:
+
+/ui/components/parent/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+    import Child from '../child/index.js';
+
+    const Parent = joystick.component({
+      render: ({ component }) => {
+        return `
+          <div class="parent-component">
+            <h2>Parent Component</h2>
+            ${component(Child, { something: 'To pass via props' })}
+          </div>
+        `;
+      },
+    });
+
+    export default Parent;
+
+    ```
+At the top of our `Parent` file, we import the `Child` component definition, and then, in the HTML returned from our `Parent` component's `render()` function, we destructure the `component` render method from the component instance we anticipate being passed to our `render()` function. Using a template literal expression `${}`, we pass a call to `component()`, passing our imported component definition as the first argument and then, optionally, an `object` containing `props` to "pass down" to the `Child` component.
+
+Behind the scenes, when the `Parent` component is rendered, the `component()` render method will automatically create an instance of the `Child` component and pass the `props` we've specified to it. Simultaneously, it will invoke the `Child` component's own `render()` function and return its HTML to be included in the parent's HTML.
+
+## Component Instance
+
+While the parent receives the HTML for any child component that it renders via `component()`, behind the scenes, at render time `component()` will also track the child's component instance in memory. This means that a child component rendered via `component()` retains its full functionality (e.g., a child component that has its own state will re-render itself in response to state changes).
+
+## CSS
+
+If a component being rendered into a parent via the `component()` render method has CSS defined, Joystick will automatically "scoop up" that CSS, scope it to the component's auto-generated `id` field, and attach it to the browser via the `<style js-css></style>` tag in the `<head></head>` for the page.
+
+## DOM Events
+
+If a component being rendered into a parent via the `component()` render method has DOM events defined, Joystick will automatically "scoop up" those DOM events and scope them to the component's auto-generated `instance_id` field, attaching them via the native JavaScript `.addEventListener()` method.
+
+## API Reference
+
+### component()
+
+#### Function API
+
+Function API
+
+    component(component_definition: function, props: object) => string;
+
+#### Arguments
+
+- component function Required
+
+  The child component definition to render.
+
+- props object
+
+  Props to pass to the child component instance.

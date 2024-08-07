@@ -1,0 +1,126 @@
+---
+title: "Connecting A Remote Database"
+---
+
+# Connecting a Remote Database
+
+For non-development environments, a remote database can be specified in the `config.databases` array via the `connection` object:
+
+/settings.production.json
+
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "users": true,
+            "connection": {
+              "username": "remote_user",
+              "password": "remotepassword123",
+              "database": "remote_database",
+              "hosts": [{
+                "hostname": "primary.mongodb-host.com",
+                "port": 27017
+              }, {
+                "hostname": "secondary.mongodb-host.com",
+                "port": 27017
+              }]
+            },
+            "options": {
+              "ca": "private/ssl_ca.pem",
+              "replicaSet": "rs-0",
+              "ssl": true,
+              "authSource": "admin"
+            }
+          },
+        ],
+        "i18n": { ... },
+        "middleware": {},
+        "email": { ... }
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+    
+
+In the above example, we're creating a connection to a fictional remote MongoDB database. While the same structure of the `connection` object is used for all databases (e.g., PostgreSQL), the part to pay attention to here is the `options` object. Here, we've expanded this to include additional _driver_ options (meaning, `options` that get passed to the database's Node.js driver internally in Joystick when your app starts up) which effect the behavior of the remote connection.
+
+#### MongoDB Specific Options
+
+Though usage of the `options` object itself is consistent across all databases providers, the actual options we're setting on the object here are specific to the MongoDB driver bundled with Joystick. For PostgreSQL options, [refer to this documentation](https://node-postgres.com/apis/client#new-client).
+
+## MongoDB Atlas + SRV Users
+
+For MongoDB databases utilizing a `mongodb+srv://` prefixed connection string, you need to add `"srv": true` to the `connection` object. This will tell Joystick to internally flip the protocol to use MongoDB's DNS discovery feature (this automatically selects servers, whereas the old protocol required you to specify each server manually). For example, a modified version of the above file would look like:
+
+/settings.production.json
+
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "users": true,
+            "connection": {
+              "srv": true,
+              "username": "remote_user",
+              "password": "remotepassword123",
+              "database": "remote_database",
+              "hosts": [{
+                "hostname": "primary.mongodb-host.com"
+              }]
+            },
+            "options": {
+              "replicaSet": "replica-set-name",
+              "ssl": true,
+              "authSource": "admin"
+            }
+          },
+        ],
+        "i18n": { ... },
+        "middleware": {},
+        "email": { ... }
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+    
+
+In this example, we've specified the path of an SSL certificate authority file (some remote databases require this for SSL/TLS authentication), the name of a `replicaSet` to target, flagged the `ssl` option to `true`, and have set an `authSource` relative to where our remote database user will be defined.
+
+## Connecting to another local database
+
+If your app's footprint will consist of _multiple_ Joystick applications (e.g., a user-facing app and a separate job server app), in development, it can be helpful to share the same _local_ database between apps. Assuming we have a user-facing app running on port `2600` (with a database running on port `2610`), a separate job server app started on `2605` can connect to the `2610` database using the same `connection` pattern above:
+
+/settings.development.json (Job Server App)
+
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "connection": {
+              "username": "",
+              "password": "",
+              "database": "app",
+              "hosts": [{
+                "hostname": "127.0.0.1",
+                "port": 2610
+              }]
+            },
+            "options": {}
+          },
+        ],
+        "i18n": { ... },
+        "middleware": {},
+        "email": { ... }
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+    
+
+Here instead of pointing to a true remote database (meaning one that's accessible via the internet), we point to `127.0.0.1` and port `2610` to access the local database.

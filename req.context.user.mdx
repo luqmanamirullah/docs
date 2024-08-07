@@ -1,0 +1,89 @@
+---
+title: "Req.Context.User"
+---
+
+# req.context.user
+
+When a user logs in to the app, for each request, Joystick will attempt to authenticate the user via the `joystick_login_token` cookie (if present). If a user exists, the accounts middleware will automatically assign that user's data to the `req.context.user` object.
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: {
+        '/': async (req = {}, res = {}) => {
+          return res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+            props: {
+              has_user: !!req.context.user,
+            },
+          });
+        },
+      },
+    });
+    ```
+
+## API Reference
+
+### req.context.user API
+
+req.context.user API
+
+    // MongoDB
+
+```js
+    {
+      _id: string,
+      emailAddress: string,
+      password: string (hash),
+      username: string,
+      sessions: array[object],
+      language: string,
+    }
+```
+
+    // PostgreSQL
+
+
+```js
+    {
+      user_id: string,
+      email_address: string,
+      password: string (hash),
+      username: string,
+      sessions: array[object],
+      language: string,
+    }
+```
+
+### Parameters
+
+- \_id string
+
+  The ID for the user. Set if the [users database](databases/users) is MongoDB.
+
+- user_id string
+
+  The ID for the user. Set if the [users database](databases/users) is PostgreSQL.
+
+- emailAddress string
+
+  The user's email address.
+
+- password string
+
+  The user's password as a SHA-256 hash.
+
+- username string
+
+  If set, the user's username.
+
+- sessions array\[object\]
+
+  The user's existing login sessions.
+
+- language string
+
+  If set, the user's language as a combination of the ISO-693 language code with the ISO-3166 country code (e.g., en-US, de-DE, es-ES, or ja-JP).

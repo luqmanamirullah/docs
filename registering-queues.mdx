@@ -1,0 +1,79 @@
+---
+title: "Registering Queues"
+---
+
+
+In order for a queue to run, it needs to be registered with our app. To register it, we want to make sure the queue definition is set on the `queues` object passed as part of the `options` object we pass to `joystick.app()`:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+    
+    joystick.app({
+      queues: {
+        example: {
+          run_on_startup: true,
+          concurrent_jobs: 10,
+          jobs: {
+            example_job: {
+              run: (payload = {}, job = {}) => {
+                // Handle work for the job here...
+                // Call one of job.completed(), job.failed(), job.requeue(), or job.delete(), after work is finished.
+              }
+            },
+          },
+        },
+      },
+      routes: { ... }
+    });
+```    
+
+Above, we've defined a queue directly on the `queues` object as `example` along with it's configuration. Alternatively, we can define queues as individual files in the `/queues` folder at the root of our app and then import them into a single `/queues/index.js` file for organization:
+
+/queues/example.js
+
+```js
+    const example_queue = {
+      run_on_startup: true,
+      concurrent_jobs: 10,
+      jobs: {
+        example_job: {
+          run: (payload = {}, job = {}) => {
+            // Handle work for the job here...
+            // Call one of job.completed(), job.failed(), job.requeue(), or job.delete(), after work is finished.
+          }
+        },
+      },
+    };
+    
+    export default example_queue;
+```    
+
+With this, we can define a `/queues/index.js` file to centralize all of our queue definitions:
+
+/queues/index.js
+
+```js
+    import example from './example.js';
+    
+    const queues = {
+      example,
+    };
+    
+    export default queues;
+```    
+
+Finally, back in our `/index.server.js` file, we can import `/queues/index.js` and pass it directly to our `joystick.app()` options:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+    import queues from './queues/index.js';
+    
+    joystick.app({
+      queues,
+      routes: { ... }
+    });
+    ```

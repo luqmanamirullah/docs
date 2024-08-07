@@ -1,0 +1,58 @@
+---
+title: "Validating Signup Metadata"
+---
+
+# Validating Signup Metadata
+
+How to validate the optional `metadata` object passed from the client via `accounts.signup()`.
+
+When calling the `accounts.signup()` method from the client, you have the option of passing an additional `metadata` object alongside the `email_address` and `password` for the user being created. The `metadata` field is intended to contain additional information about the user (e.g., their name, their job title, etc).
+
+Because this `metadata` object is passed directly from the client to your database by Joystick, it's important to validate its contents to ensure they match your expectations. To perform this validation, you can utilize the `accounts.signup.metadata` object passed to `joystick.app()` in your `index.server.js` file at the root of your project.
+
+As an example, assume we had a call to `accounts.signup()` in the browser like this:
+
+    import { accounts } from '@joystick.js/ui';
+
+    joystick.component({
+      events: {
+        'submit form': (event = {}, instance = {}) => {
+          accounts.signup({
+            email_address: event.target.email_address.value,
+            password: event.target.password.value,
+            metadata: {
+              company_name: event.target.company_name.value,
+            },
+          });
+        },
+      },
+      render: () => {
+        return `
+          <form></form>
+        `;
+      },
+    })
+
+Above, the `metadata` object is optional. While we _do_ control what's passed to `accounts.signup()` in our code, because that function is accessible to any user on the client, a hypothetical attacker could pass arbitrary data to it via the `metadata` object.
+
+To guard against this, on our server, we can define input validation for this field to prevent unexpected data from making it to the database:
+
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      accounts: {
+        signup: {
+          metadata: {
+            company_name: {
+              type: 'string',
+              required: true,
+            },
+          }
+        },
+      },
+      ...
+    });
+
+In the example above, the object passed to `accounts.signup.metadata` is using the same [input validation schema language](node/app/api/validating-input) that's used when you define getters and setters in your app's API.
+
+When `accounts.signup.metadata` is set, Joystick will automatically validate that the `metadata` object passed to the server via `accounts.signup()` matches its expectations. If it doesn't, Joystick will throw an error and reject the signup request.

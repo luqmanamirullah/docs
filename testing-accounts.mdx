@@ -1,0 +1,119 @@
+---
+title: "Testing Accounts"
+---
+
+# Testing Accounts
+
+For account testing, Joystick takes a simple approach. You have two options: create accounts and delete accounts. Because a test is ephemeral, users _for_ a test should be ephemeral, too. To facilitate this, `@joystick.js/test` includes two methods for accounts:
+
+- `accounts.signup()` creates a new user in your test database, returning the login credentials (a login `token` that the server understands and a `token_expires_at` timestamp that the server understands).
+- `accounts.delete()` deletes a user in your test database.
+
+The ideal lifecycle for a user is to create a user for the test, run the test, and then delete the user.
+
+## Creating Accounts
+
+To create an account, we leverage the `test.accounts.signup()` method exported from `@joystick.js/test`:
+
+/tests/ui/pages/index/index.test.js
+
+```js
+    import test from '@joystick.js/test';
+
+    test.that('the user is created as expected', async (assert = {}) => {
+      const user = await test.accounts.signup({
+        emailAddress: 'example@test.com',
+        password: 'password',
+        metadata: {
+          roles: ['manager'],
+        }
+      });
+
+      const existing_user = await process.databases.mongodb.collection('users').findOne({ emailAddress: 'example@test.com' });
+
+      assert.is(!!existing_user, true);
+    });
+```
+Similar to the `accounts.signup()` methods in `@joystick.js/ui` and `@joystick.js/node`, we call to the method `test.accounts.signup()` passing an object of options describing our user. We pass an `email_address` (and/or `username`), `password`, and optionally, a `metadata` object with additional fields to add to the user.
+
+When this method is called, on the server, Joystick will attempt to create the user. First, it will check to see if a user with the `email_address` (or `username`) already exists. If one does, it will automatically delete that user and then recreate the user with the new input you've provided. This ensures that multiple tests can create the same user without having to worry about collisions.
+
+Once created, the server will respond with an object containing a `token` and `token_expires_at` field. The former representing a login token for the user and the latter it's expiration date. This object can be passed to other test methods like `test.render()` and `test.routes.<http_method>` to simulate a logged-in user.
+
+## Deleting Accounts
+
+/tests/ui/pages/index/index.test.js
+
+```js
+    import test from '@joystick.js/test';
+
+    test.that('the user is deleted as expected', async (assert = {}) => {
+      const user = await test.accounts.signup({
+        emailAddress: 'example@test.com',
+        password: 'password',
+        metadata: {
+          roles: ['manager'],
+        }
+      });
+
+      await test.accounts.delete(user?._id);
+
+      const existing_user = await process.databases.mongodb.collection('users').findOne({ emailAddress: 'example@test.com' });
+
+      assert.is(!existing_user, true);
+    });
+    ```
+
+While Joystick will automatically attempt to clean up users with an identical email address when running `test.accounts.signup()`, it's wise to manually write the code to clean up test users so the behavior is clear in your code. To do it, we can use the `test.accounts.delete()` method, passing the `_id` (if we're using MongoDB) or `user_id` (if we're using PostgreSQL) field from the object returned by `test.accounts.signup()`.
+
+When this method runs, the specified user will automatically be deleted from your test database.
+
+## API Reference
+
+### test.accounts.signup()
+
+#### Function API
+
+Function API
+
+    test.accounts.signup(options: object) => Promise;
+
+#### Arguments
+
+- options object
+
+  An `object` defining the parameters for the new user account.
+
+  - email_address string Required
+
+    A `string` defining the email address for the new user account.
+
+  - username string
+
+    A `string` defining the username for the new user account.
+
+  - password string Required
+
+    A `string` defining the password for the new user account.
+
+  - metadata object
+
+    An `object` defining additional metadata for the new user account.
+
+    - language string
+
+      A `string` defining the preferred language for the user as an [ISO Language Code](https://gist.github.com/rglover/23d9d10d788c87e7fc5f5d7d8629633f).
+
+### test.accounts.delete()
+
+#### Function API
+
+Function API
+
+    test.accounts.delete(user_id: string) => Promise;
+
+#### Arguments
+
+- user_id string Required
+
+  The ID of the user to delete. This should be either the \`\_id\` or \`user_id\` field from the response object of `test.accounts.signup()`.

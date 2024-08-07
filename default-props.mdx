@@ -1,0 +1,34 @@
+---
+title: "Default Props"
+---
+
+# Default Props
+
+While a component most often receives its props from [a parent component at render time](ui/components/render/render-methods/component), it can be helpful to set default props in the event that a prop you expect (or require) isn't passed. To set default props, you can define them on your component instance:
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      default_props: {
+        name: 'Example Default Prop',
+      },
+      render: ({ props }) => {
+        return `
+          <div>
+            <p>This will be set no matter what: ${props.name}</p>
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+
+## API Reference
+
+Like normal props, `default_props` can be set to an object of key/value pairs that will be used as fallback values on the component instance's `props` object.
+
+Object API
+
+    default_props: object

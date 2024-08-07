@@ -1,0 +1,110 @@
+---
+title: "Sending An Email"
+---
+
+
+To send an email, you can utilize the `email.send()` method, accessible via the named export `email` from `@joystick.js/node`:
+
+/api/messages/setters.js
+
+```js
+    import joystick, { email } from '@joystick.js/node';
+
+    const setters = {
+      send_message: {
+        input: {
+          user_id: {
+            type: 'string',
+            required: true,
+          },
+          message: {
+            type: 'string',
+            required: true,
+          },
+        },
+        set: async (input = {}) => {
+          const message_id = joystick.id();
+
+          await process.databases.mongodb.collection('messages').insertOne({
+            _id: message_id,
+            recipient: input?.user_id,
+            message: input?.message,
+          });
+
+          const recipient_user = process.databases.mongodb.collection('users').findOne({
+            _id: input?.user_id,
+          })
+
+          await email.send({
+            to: recipient_user?.emailAddress,
+            from: 'notifications@app.com',
+            subject: `You received a new message from ${context?.user?.username}!`,
+            base: 'user_messages',
+            template: 'new_message',
+            preheader: `${context?.user?.username} says "${input?.message}"`,
+            props: {
+              message_id,
+              sender: context?.user?.username,
+            },
+            attachments: [
+              { filename: 'message.txt', content: input?.message }
+            ],
+          });
+        },
+      },
+    };
+
+    export default setters;
+    ```
+
+Above, we create a hypothetical [setter](node/app/api/setters) called `create_message` for a feature where users can send messages between one another. First, we store the message being sent in the database and then attempt to retrieve the user receiving the message from the database as `recipient_user`.
+
+Next, we try to send an email to that user via their `emailAddress` in the database. To send the email, we call to `email.send()` passing the options for our email. Of the options present, `to`, `from`, `subject`, and `template` are required.
+
+## API Reference
+
+### email.send()
+
+#### Function API
+
+Function API
+
+    email.send(options: object) => Promise;
+
+#### Parameters
+
+- options object Required
+
+  The options object defining the email to send.
+
+  - to string Required
+
+    The recipient address for the email being sent.
+
+  - from string Required
+
+    The sender address for the email being sent.
+
+  - subject string Required
+
+    The subject for the email being sent.
+
+  - base string
+
+    The name of the [base template](node/email/defining-a-base-template) file relative to the `/email` directory at the root of your app. The `.html` suffix is assumed (i.e., instead of passing, `base.html`, pass `base`).
+
+  - template string Required
+
+    The name of the [email template](node/email/defining-an-email-template) file relative to the `/email` directory at the root of your app. The `.js` suffix is assumed (i.e., instead of passing, `welcome.js`, pass `welcome`).
+
+  - preheader string
+
+    A string to place at the top of the email's body. Intended to be the "preview" text in a recipient's inbox.
+
+  - props object
+
+    An object of key/value pairs as props (properties) to pass to the email template specified at `template`.
+
+  - attachments array\[object\]
+
+    An array of objects defining attachments for the email following the [Nodemailer Attachments](https://nodemailer.com/message/attachments/) specification (internally, Joystick uses Nodemailer to send emails).

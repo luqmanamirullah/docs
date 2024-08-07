@@ -1,0 +1,28 @@
+---
+title: "Testing Email"
+---
+
+# Testing Email
+
+While `@joystick.js/test` doesn't include an explicit method for triggering email sends, behind the scenes, Joystick automatically tracks all calls to the `email.send()` method which can be accessed inside of your tests.
+
+To verify that emails are sending as expected, it's recommended that your test calls to the functionality (e.g., a setter) in your app that triggers an email send and then verify a call to `email.send()` was fired via the `test.utils.get_function_calls()` method (with the arg(ument)s you expect):
+
+/tests/index.server.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the /api/books route returns books', async (assert = {}) => {
+       await test.api.set('create_user', {
+        user,
+        input: {
+          email_address: 'example@test.com',
+          password: 'password',
+          name: 'Cory Hale',
+        },
+      });
+
+      const function_calls = await test.utils.get_function_calls('node.email.send');
+
+      assert.is(function_calls[0]?.args[0]?.to, 'example@test.com');
+    });

@@ -1,0 +1,45 @@
+---
+title: "Defining A Database For Queues"
+---
+
+
+In order for queues to work in your app, one of your configured databases must be set as the target for queue data. To do it, in your `settings.<env>.json` file, on your preferred database, add the `queues: true` flag:
+
+/settings.development.json
+```js
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "users": true,
+            "queues" true,
+            "options": {}
+          }
+        ],
+        "i18n": {
+          "defaultLanguage": "en-US"
+        },
+        "middleware": {},
+        "email": {
+          "from": "",
+          "smtp": {
+            "host": "",
+            "port": 587,
+            "username": "",
+            "password": ""
+          }
+        }
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+```
+Above, in the `config.databases` array, for our `mongodb` database, we've added the flag `"queues": true`. When your [app server](node/app/defining-an-app-server) starts up, this tells Joystick to map any queues-related activity to this database and use it as the source database when running jobs in your queues.
+
+Behind the scenes, each queue that you define will get a new collection (or table, if using a SQL-based database like PostgreSQL) with a name like `queue_<queue_name>`. Assuming we define a queue like `notifications`, we'd anticipate a collection/table like `queue_notifications` to be created for us on the database with the `"queues": true` flag specified above.
+
+#### One queues database per app
+
+Keep in mind that only one database can be used for storing queue data in your app. Joystick enforces this to avoid confusion in your code and unwanted bugs when handling jobs internally.

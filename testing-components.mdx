@@ -1,0 +1,259 @@
+---
+title: "Testing Components"
+---
+
+# Testing Components
+
+To test Joystick components, the `@joystick.js/test` package includes a special `test.render()` method for rendering your component's into memory. Once rendered into memory, you can test:
+
+- That, given some props and user data, the component renders the correct HTML.
+- DOM event listeners behave in the way that you expect.
+- Component methods you've defined behave in the way that you expect.
+- Data you fetch on the component matches your expectations.
+
+By testing in these four areas, you can gain confidence that your UI behaves how you'd expect for your users.
+
+## Using the test.render() method
+
+To generate an in-memory instance of your component for testing, call the `test.render()` method from `@joystick.js/test`, passing the path of the component you'd like to test:
+
+/tests/ui/pages/index/index.test.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the index page renders as expected', async (assert = {}) => {
+      const component = await test.render('ui/pages/index/index.js', {
+        props: {},
+        state: {},
+        options: {
+          language: 'en-US',
+        },
+      });
+
+      assert.is(true, true);
+    });
+
+Above, we've defined a test with the `test.that()` method and inside of the test's callback, we create a variable `component` and set it to a call to `test.render()` (we expect a Promise to be returned so we place `async` on the callback for our test and prefix our call with `await`).
+
+To `test.render()`, as the first argument, we pass the path to the Joystick component we'd like to test: `ui/pages/index/index.js`. As the second argument, we pass an options object containing the default `props`, default `state`, and some render `options` (here we force the `language` for this test to be `en-US`).
+
+In response, we expect to get back an object with a few methods to help us test our component.
+
+## Testing Rendered HTML
+
+On the object returned by `test.render()`, we can retrieve the rendered HTML for the component by calling to `component.render_to_html()` on the component instance object returned by `test.render()`:
+
+/tests/ui/pages/index/index.test.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the index page renders as expected', async (assert = {}) => {
+      const component = await test.render('ui/pages/index/index.js', {
+        props: {},
+        state: {},
+        options: {
+          language: 'en-US',
+        },
+      });
+
+      const html = component.render_to_html();
+
+      assert.is(html?.includes('A full-stack JavaScript framework for building web apps and websites.'), true);
+    });
+
+When we call to `component.render_to_html()` we expect to get back a string of HTML returned from calling the component's `render()` method internally.
+
+## Testing DOM events
+
+When we think about testing DOM events on components in Joystick, what we really want to focus on is testing _side effects_. So, instead of asking "was the DOM event triggered?" we want to ask "did triggering the DOM event do what I expected it to do in my app?" For example, if I have a `click` event on a `button` in my component that's supposed to set the current time on state, I want to trigger that event and then confirm that the current time was set on the component's state.
+
+/tests/ui/pages/index/index.test.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the index page renders as expected', async (assert = {}) => { ... });
+
+    test.that('a button click sets the current time on state', async (assert = {}) => {
+      const component = await test.render('ui/pages/index/index.js', {
+        props: {},
+        state: {},
+        options: {
+          language: 'en-US',
+        },
+      });
+
+      component.test.event('click', 'button');
+
+      assert.is(!!component.state.current_time, true);
+    });
+
+Above, we assume that our component has an event listener defined `click button` listening for a `click` event on a `button` element in our component. Inside of that event listener, we expect a call to `instance.set_state({ current_time: new Date().getTime() })`. For our test, we just want to confirm that _something_ was set on `state.current_time` so we do a double-bang check on the value to assert that it exists.
+
+## Testing component methods
+
+Depending on the implementation of our component, we may have one or more [custom methods](ui/components/methods) defined to help us perform work elsewhere on the component. Using the `component.test.method()` function, we can call individual methods directly on the component instance to unit test them:
+
+/tests/ui/pages/index/index.test.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the reverse_name() method reverses the name', async (assert = {}) => { ... });
+
+    test.that('a button click sets the current time on state', async (assert = {}) => { ... });
+
+    test.that('the reverse_name() method reverses the name', async (assert = {}) => {
+      const component = await test.render('ui/pages/index/index.js', {
+        props: {},
+        state: {},
+        options: {
+          language: 'en-US',
+        },
+      });
+
+      const reversed_name = component.test.method('reverse_name', ['Ryan']);
+
+      assert.is(reversed_name === 'nayR', true);
+    });
+
+Above, we anticipate a method `reverse_name()` that takes in a name as a string and reverses it. To perform the test, we utilize the `component.test.method()` function which takes in the name of the method we want to call as a `string` for the first argument and an array of arguments to pass to the method as an `array` (the array contents are spread on the call to the method like `method_to_call(...method_args)` behind the scenes).
+
+In response, we expect the return value of the method and then compare the result to our expectation to run our assertion.
+
+## Testing data
+
+If a component utilizes the [data function](ui/components/data) to fetch data when rendered on the server, it can be helpful to verify that the data you expect to be returned is actually returned. Utilizing the `component.test.data()` method, we can verify we're getting back the data we expect:
+
+/tests/ui/pages/index/index.test.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the reverse_name() method reverses the name', async (assert = {}) => { ... });
+
+    test.that('a button click sets the current time on state', async (assert = {}) => { ... });
+
+    test.that('the reverse_name() method reverses the name', async (assert = {}) => { ... });
+
+    test.that('the data returned matches our expectations', async (assert = {}) => {
+      const component = await test.render('ui/pages/index/index.js', {
+        props: {},
+        state: {},
+        options: {
+          language: 'en-US',
+        },
+      });
+
+      const data = await component.test.data();
+
+      assert.is(typeof data?.stars === 'integer', true);
+    });
+
+Above, we call to `test.render()` to create our component instance then call the `component.test.data()` method off of that instance. Because we expect our `data` function to return a Promise (due to its implementation), we `await` the call to `component.test.data()`. Next, we verify that the `data` value we received back has a `stars` field equal to an integer (the default Joystick index page fetches the current Github stars for the project repo).
+
+## API Reference
+
+### test.render()
+
+#### Function API
+
+Function API
+
+    test.render(component_path: string, render_options: object) => object;
+
+#### Arguments
+
+- component_path string Required
+
+  The path to a component in the project to render into memory.
+
+- render_options object
+
+  An object of options for customizing the render.
+
+  - props object
+
+    Props to pass to the rendered component instance.
+
+  - state object
+
+    State to pass to the rendered component instance.
+
+  - options object
+
+    Additional options to customize the behavior of the rendered component.
+
+    - language string
+
+      A string containing the ISO language code to load for the test.
+
+    - user object
+
+      A user object returned by the `test.accounts.signup()` method containing a user session to perform the test against.
+
+  - layout string
+
+    The path to a Joystick layout component to render the component into.
+
+### Return Value
+
+Object API
+
+    {
+      dom: object,
+      instance: object,
+      test: {
+        data: function,
+        render_to_html: function,
+        method: function,
+        event: function,
+      }
+    }
+
+#### Return Value Parameters
+
+- component_path object Required
+
+  The in-memory DOM instance generated by [linkedom](https://github.com/WebReflection/linkedom) (the library used internally for creating an in-memory DOM).
+
+- instance object
+
+  The Joystick component instance.
+
+- test object
+
+  An object containing helper methods for writing component tests.
+
+  - data function
+
+    A function for calling the `data()` method on the component instance. Accepts an optional `input` object containing input values for API requests.
+
+    - input object
+
+      An optional object containing key/value pairs to pass as input to the data function.
+
+  - render_to_html function
+
+    A function for rendering the component's `render()` method return value to an HTML string.
+
+  - method function
+
+    A function for testing custom methods on the component instance.
+
+    - method_name string Required
+
+      The name of the method on the component to call.
+
+    - method_args array
+
+      An optional array containing arguments to pass to the method when it's called. Arguments are spread on the call (i.e., the index 0 value is the first argument, the index 1 value is the second argument, etc.).
+
+  - event function
+
+    A function for triggering a DOM event on the component instance. Receives an `event_type`, `event_target`, and any `overrides` for the DOM event object.
+
+    - event_type string Required
+
+      A valid DOM event name (e.g., `click` or `mouseover`) to trigger on the `event_target`.
+
+    - event_target string Required
+
+      The CSS/DOM selector for the element receiving the DOM event of `event_type`.

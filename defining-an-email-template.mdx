@@ -1,0 +1,92 @@
+---
+title: "Defining An Email Template"
+---
+
+
+Email templates in Joystick are just Joystick components. The only real difference between a Joystick component intended for email vs. the UI is the level of interactivity we expect. Features like state and DOM events are ignored in a component purposed as an email template, but basic features like rendering HTML, defining CSS, and using custom methods work as expected.
+
+To define an email template, we just create a file in our `/email` folder with the name of a template like `/email/welcome.js`:
+
+/email/welcome.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Welcome = joystick.component({
+      css: `
+        p {
+          font-size: 16px;
+          line-height: 24px;
+          color: #333;
+        }
+
+        ul li a {
+          color: red;
+        }
+      `,
+      render: ({ props }) => {
+        return `
+          <div>
+            <p>Hey, ${props.username}!</p>
+            <p>Thanks for signing up for our app. To get up to speed we recommended checking out the following resources:</p>
+            <ul>
+              <li><a href="https://app.com/docs/getting-started">Getting Started</a></li>
+              <li><a href="https://app.com/docs/sending-a-message">Sending a Message</a></li>
+              <li><a href="https://app.com/docs/following-users">Following Users</a></li>
+            </ul>
+            <p>We want you to feel right at home, so if you ever get confused, feel free to hit reply on this email and we'll help you out!</p>
+           <p>Welcome,<br /> The App Team</p>
+          </div>
+        `;
+      },
+    });
+    ```
+
+When we call to `email.send()` to send our email, we just specify the name of our template like so:
+
+```js
+    email.send({
+      template: 'welcome',
+      props: {
+        username: '@example_user',
+      },
+    })
+```
+If we look close, up in our template component we expect `props.username` to be defined. When calling to `email.send()` we can pass any `props` we'd like passed down to our template.
+
+Behind the scenes before our email is sent, Joystick will automatically render our component to HTML, compile any CSS and inject it into the `<head></head>` of our [base template](node/email/defining-a-base-template), and attempt to auto-inline any CSS directly into the HTML of our template (important for HTML emails due to their inconsistent support for CSS and `<style></style>` tags).
+
+## Internationalization (i18n)
+
+Similar to Joystick components in our UI, we can also define translations for our email. Translations for emails are stored in the `/i18n/email` folder at the root of our app and follow a file name convention of `<template_name>_<iso_language_code>.js` like `welcome_en-US.js` or `welcome_es-ES.js`.
+
+/i18n/email/welcome_en-US.js
+
+```js
+    const en_US = {
+      hey: 'Hey',
+      thanks_for_signing_up: 'Thanks for signing up for our app. To get up to speed we recommended checking out the following resources:',
+    };
+
+    export default en_US;
+```
+Once defined, just like a UI-purposed Joystick component, the `i18n()` render method can be utilized to access our translations:
+
+/email/welcome.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Welcome = joystick.component({
+      css: `...`,
+      render: ({ props, i18n }) => {
+        return `
+          <div>
+            <p>${i18n('hey')}, ${props.username}!</p>
+            <p>${i18n('thanks_for_signing_up')}</p>
+            ...
+          </div>
+        `;
+      },
+    });
+    ```

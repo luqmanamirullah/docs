@@ -1,0 +1,45 @@
+---
+title: "Basic Routes"
+---
+
+# Basic Routes
+
+How to implement a simple, HTTP GET route for your app.
+
+When you start your app with `joystick.app()`, Joystick starts an HTTP server via Express in the background and registers any routes you define on the `routes` object passed via the `options` object you pass to `joystick.app()`.
+
+By default, when you specify a route, Joystick defines an HTTP GET route (meaning the route can only receive HTTP requests made with the `GET` method ) via Express, mapped to the URL you specify.
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+    
+    joystick.app({
+      routes: {
+        '/': (req = {}, res = {}) => {
+           return res.status(200).send('Howdy');
+        },
+      },
+    });
+```    
+
+Above, we define a simple "index" route at `/` in our app using the basic route syntax (a key containing the path for our route assigned a route handler as a callback function). Save for Joystick adding a few additional properties to the `req` and `res` objects, the route this defines behaves identical to a route you'd define in a vanilla Express app.
+
+## API Reference
+
+### Route Definition API
+
+Route Definition API
+
+```js
+    {
+      [route_path: string]: (req: object, res: object) => void
+    }
+```    
+
+### Parameters
+
+*   route\_path function Required
+    
+    The callback function for the route. Receives the inbound `req` and \``res`\` objects./p>

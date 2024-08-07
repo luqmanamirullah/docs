@@ -1,0 +1,94 @@
+---
+title: "Authorization"
+---
+
+
+A golden rule in web development is to _never trust the client_. Because your app is (or will be) open to the web, anyone can access its API endpoints. To guard against unauthorized access to getters and setters, for security, it's recommended that you utilize the `authorized()` method on your getter and setter definitions to determine if a client's access is authorized.
+
+/api/books/getters.js
+```js
+    const getters = {
+      books: {
+        authorized: (input = {}, context = {}) => {
+          return !!context?.user;
+        },
+        get: (input = {}, context = {}) => {
+          return process.databases.mongodb.collection('books').find({
+            user_id: context?.user?._id,
+            category: input?.category,
+          }).toArray();
+        }
+      }
+    };
+    
+    export default getters;
+```    
+
+The `authorized()` method on your getter or setter receives the same `input` and `context` values as your `get()` or `set()` methods. Internally, any logic you wish can be performed to determine if the current request is authorized (e.g., checking for the presence of a user, validating their roles, etc.). The only requirement for the `authorized()` method is that it returns one of two responses:
+
+1.  A `boolean` value (`true` if authorized, `false` if not).
+2.  An object containing an `authorized` key containing a `boolean` value and a custom `message` to send back to the client.
+
+If the `authorized()` method returns `true`, the request proceeds as expected. If `false`, the request is rejected with an `HTTP 403 Unauthorized` status code.
+
+If you choose to return an object with an `authorized` value of `true`, the request proceeds as expected. If you choose to return an object with an `authorized` value of `false`, the request is rejected with an `HTTP 403 Unauthorized` status code.
+
+## Custom Authorization Errors
+
+If you'd like to provide a custom error message when authorization fails, an object can be returned from `authorized()` containing a `message` field:
+
+/api/books/getters.js
+
+```js
+    const getters = {
+      books: {
+        authorized: (input = {}, context = {}) => {
+          return {
+            authorized: !!context.user,
+            message: 'Must be logged in to access books.'
+          };
+        },
+        get: (input = {}, context = {}) => {
+          return process.databases.mongodb.collection('books').find({
+            user_id: context?.user?._id,
+            category: input?.category,
+          }).toArray();
+        }
+      }
+    };
+    
+    export default getters;
+```    
+
+## API Reference
+
+### authorized()
+
+#### Function API
+
+Function API
+
+    authorized(input: object, context: object) => boolean || object;
+    
+
+#### Arguments
+
+*   input object
+    
+    If passed from the client, the `input` value for the getter or setter request. If nothing is passed, value will be `{}`.
+    
+*   context object
+    
+    The `context` object automatically passed by Joystick containing the inbound HTTP `req` object and `user` object (if available).
+    
+
+#### Returns
+
+The `authorized` method can return a `boolean` value, or, an object with the following interface:
+
+```json
+    {
+      authorized: boolean,
+      message: string,
+    }
+```

@@ -1,0 +1,43 @@
+---
+title: "Unit Testing Functions"
+---
+
+# Unit Testing Functions
+
+Unit testing in your app should be reserved for testing individual, standalone functions (i.e., "units" of code). To unit test a function, the `test.load()` method can be utilized:
+
+/tests/lib/add.test.js
+
+```js
+    import test from '@joystick.js/test';
+
+    test.that('add function adds two numbers together', async (assert = {}) => {
+      const add = await test.load('lib/add.js', { default: true });
+      assert.is(add(5, 5), 10);
+    });
+```
+Above, we've utilized the `test.load()` method to dynamically import a function we want to unit test in our app `/lib/add.js`. When we call `test.load()` a dynamic import of that path is performed. Because we expect `/lib/add.js` to export the `add()` function as a default export, we pass `{ default: true }` as the second argument to `test.load()` to ensure that we're handed back the default export and not an object like `{ default: [Function add] }`.
+
+## API Reference
+
+### test.load()
+
+#### Function API
+
+Function API
+
+    test.load(path: string, options: object) => Promise;
+
+#### Arguments
+
+- path string Required
+
+  The path relative to the root of your project that you want to load dynamically.
+
+- options object
+
+  Options for test.load().
+
+  - default boolean
+
+    If set to `true`, tells `test.load()` that the file being loaded has a JavaScript `export default` statement and that the `_default` value on the returned object should be returned from `test.load()` (as opposed to the object with all of the file's exports).

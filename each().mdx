@@ -1,0 +1,52 @@
+---
+title: "Each()"
+---
+
+# each()
+
+The `each()` render method is a function that takes in an array of items along with a callback function to invoke for each item in that array that returns a string of HTML to render.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const books = [
+      { id: 1, title: 'Awareness', author: 'Anthony DeMello' },
+      { id: 2, title: 'Seeking Wisdom', author: 'Peter Bevelin' },
+      { id: 3, title: 'The Courage to Be Disliked', author: 'Ichiro Kishimi' }
+    ];
+
+    const Index = joystick.component({
+      render: ({ each }) => {
+        return `
+          <div>
+            ${each(books, (book = {}) => {
+              return `<li><a href="/books/${book.id}">${book.title}</a> by ${book.author}</li>`;
+            })}
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+```
+## API Reference
+
+### each()
+
+#### Function API
+
+Function API
+
+    each(elements: array, callback: function) => string;
+
+#### Arguments
+
+- elements array Required
+
+  An array of elements to iterate over.
+
+- callback function Required
+
+  A `function` to call for each item in the `elements` array, returning a `string` of HTML.

@@ -1,0 +1,250 @@
+---
+title: "Res.Render()"
+---
+
+
+To aid in the process of server-side rendering Joystick components, Joystick overrides the `res.render()` function built-in to Express. Using this function, you can:
+
+- Render a Joystick [page](ui/components/component-types#page-components) component.
+- Render a Joystick [page](ui/components/component-types#page-components) component into a [layout](ui/components/component-types#layout-components) component.
+- Pass route-specific props to a component.
+- Define SEO metadata for a page.
+- Define custom `<head></head>` and `<body></body>` attributes.
+
+## Rendering a component
+
+To render a standalone (without a layout) Joystick component, pass the full path to your component to `res.render()`:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: {
+        '/': (req = {}, res = {}) => {
+          return res.render('ui/pages/index/index.js');
+        },
+      },
+    });
+    ```
+
+Above, we anticipate a page component at `/ui/pages/index/index.js`. If the page exists, Joystick will server-side render the component's HTML and CSS and return it to the inbound request.
+
+## Rendering into a layout
+
+In addition to passing the page to render, when rendering a page component into a layout, an additional `options` object can be passed to `res.render()` with a `layout` component path specified:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: {
+        '/': (req = {}, res = {}) => {
+          return res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+      },
+    });
+```
+Joystick will server-side render both the layout component _and_ the page component, passing the resulting page component down to the layout component via the standard `props.page` prop.
+
+## Passing props to a component
+
+If necessary, route-specific props can be passed down to the page or layout being rendered:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: {
+        '/': async (req = {}, res = {}) => {
+          const active_sale = await process.databases.mongodb.collection('sales').findOne();
+
+          return res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+            props: {
+              active_sale: !!active_sale,
+            }
+          });
+        },
+      },
+    });
+    ```
+
+## Defining SEO metadata
+
+To assist with search engine optimization (SEO), additional metadata tags can be added to the route via the `head` option:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: {
+        '/': async (req = {}, res = {}) => {
+          return res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+            head: {
+              title: 'A Custom SEO Title',
+              tags: {
+                meta: [
+                  { property: 'og:type', content: 'Website' },
+                  { property: 'og:site_name', content: 'Website Name' },
+                  { property: 'og:title', content: 'A Custom SEO Title' },
+                  {
+                    property: 'og:description',
+                    content:
+                      "A custom open graph description.",
+                  },
+                  {
+                    property: 'og:image',
+                    content: 'https://mywebsite.com/seo/image.png',
+                  },
+                ],
+              },
+              jsonld: {
+                '@context': 'https://schema.org/',
+                '@type': 'WebSite',
+                name: 'Website Name',
+                author: {
+                  '@type': 'Organization',
+                  name: 'Website Co.',
+                },
+                description: "A custom JSON-LD description.",
+              },
+            },
+          });
+        },
+      },
+    });
+```
+For SEO, the following `<head></head>` tags can be set:
+
+- `head.title` to set the `<title></title>` for the page.
+- `head.tags.meta` to define individual HTML meta tags (can be used for SEO).
+- `head.tags.link` to define individual HTML link tags.
+- `head.tags.script` to define individual HTML script tags.
+- `head.jsonld` to define Google-specific JSON-LD tags.
+
+When your page is rendered, Joystick will automatically inject the specified tags into the `<head></head>` tag before responding to a request.
+
+## Defining custom attributes
+
+If you need to conditionally add attributes (e.g., class names) to the `<head></head>` or `<body></body>` tag, the `attributes` option can be utilized:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: {
+        '/': async (req = {}, res = {}) => {
+          return res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+            attributes: {
+              head: {
+                class: {
+                  list: ['no-js'],
+                },
+              },
+              body: {
+                class: {
+                  list: ['is-index-page']
+                }
+              },
+            },
+          });
+        },
+      },
+    });
+
+```
+## API Reference
+
+### Function API
+
+Function API
+
+    res.render(page_path: string, options: object) => void;
+
+#### Arguments
+
+- page_path string Required
+
+  The path to the page that should be rendered.
+
+- options object
+
+  Additional options when rendering the page.
+
+  - layout string
+
+    The path to a layout component in the `/ui` folder that the component instance relative to `page_path` should be passed as `props.page` to render into.
+
+  - props object
+
+    Props to pass to the page being rendered (and if specified, the layout).
+
+  - head object
+
+    Options for the `<head>` tag of the rendered page.
+
+    - title string
+
+      The title for the page.
+
+    - tags object
+
+      Additional HTML tags to add to the `<head>` tag of the rendered page.
+
+      - meta array\[object\]
+
+        Additional HTML `<meta>` tags to add to the page as an array of objects where each object defines a meta tag. Each object should contain the attributes for the meta tag where each property's `key` represents the attribute name to add to the meta tag and `value` represents the attribute's value.
+
+      - link array\[object\]
+
+        Additional HTML `<link>` tags to add to the page as an array of objects where each object defines a link tag. Each object should contain the attributes for the link tag where each property's `key` represents the attribute name to add to the link tag and `value` represents the attribute's value.
+
+      - script array\[object\]
+
+        Additional HTML `<script>` tags to add to the page as an array of objects where each object defines a script tag. Each object should contain the attributes for the script tag where each property's `key` represents the attribute name to add to the script tag and `value` represents the attribute's value.
+
+    - jsonld object
+
+      The Google [JSON-LD](https://json-ld.org/) tags for the page where every `key` should represent a JSON-LD tag and every `value` should represent that tag's value.
+
+  - attributes object
+
+    Additional attributes to add to the HTML for the page.
+
+    - head object
+
+      Additional attributes to add to the HTML `<head>` tag for the page.
+
+      - class object
+
+        Options for setting the class attribute on the HTML `<head>` tag for the page.
+
+        - list array\[string\]
+
+          An array of strings representing CSS class names to add to the HTML `<head>` tag for the page.
+
+    - body object
+
+      Additional attributes to add to the HTML `<body>` tag for the page.
+
+      - class object
+
+        Options for setting the class attribute on the HTML `<body>` tag for the page.
+
+        - list array\[string\]
+
+          An array of strings representing CSS class names to add to the HTML `<body>` tag for the page.

@@ -1,0 +1,93 @@
+---
+title: "When()"
+---
+
+# when()
+
+The `when()` render method is a function that takes in a `boolean` value along with a `string` of HTML (or a `function` returning a `string`) to conditionally render.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      state: {
+        show_form: false,
+      },
+      events: {
+        'click button': (event = {}, instance = {}) => {
+          instance.set_state({ show_form: !instance.state.show_form });
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          <div>
+            <button>Show Form</button>
+            ${when(state.show_form, `
+              <form>...</form>
+            `)}
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+```
+When the passed `boolean` value is `true`, the HTML passed as the second argument will render. When the passed `boolean` value is `false`, the HTML will be omitted.
+
+## Using a function
+
+Optionally, instead of a `string`, a `function` can be passed as the second argument to `when()`. This is useful when the conditional HTML string includes a call to the `component()` render method and you want to prevent that component's instance from being created until the passed `boolean` is `true`.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+    import FormComponent from '../../components/form/index.js';
+
+    const Index = joystick.component({
+      state: {
+        show_form: false,
+      },
+      events: {
+        'click button': (event = {}, instance = {}) => {
+          instance.set_state({ show_form: !instance.state.show_form });
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          <div>
+            <button>Show Form</button>
+            ${when(state.show_form, () => `
+              ${component(FormComponent)}
+            `)}
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+
+    ```
+Above, the `function` passed as the second argument to `when()` will not be called until the first argument's value returns a `boolean` `true`. Subsequently, the `component()` call inside of the returned HTML will not fire until the `function` returning the `string` it's embedded in is called.
+
+## API Reference
+
+### when()
+
+#### Function API
+
+Function API
+
+    when(should_render: boolean, value_to_render: string|function) => string;
+
+#### Arguments
+
+- should_render boolean Required
+
+  A `boolean` value to evaluate whether or not the conditional HTML should be rendered.
+
+- value_to_render string|function Required
+
+  A `string` of HTML or a `function` returning a `string` of HTML to render if the first argument returns `true`.

@@ -1,0 +1,54 @@
+---
+title: "External"
+---
+
+# External
+
+In order to assist in the management of third-party JavaScript libraries, in the browser, Joystick includes a global `joystick._external` object where library instances can be tracked. This allows you to manage external libraries across components without having to implement complicated data patterns or inconveniently pass library instances around via props.
+
+## Tracking third-party libraries
+
+To track a third-party library, you can utilize the `joystick.external.track()` method.
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      lifecycle: {
+        on_mount: () => {
+          const stripe = stripe(joystick.settings.public.stripe.publishable_key);
+          joystick.external.track('stripe', stripe);
+        }
+      },
+      render: () => {
+        return `<div></div>`;
+      },
+    });
+
+    export default Index;
+
+`joystick.external.track()` takes two arguments: the `name` of the library you want to track and the data you want to track (e.g., a class instance or a configuration object). Once tracked, you will have global access to that library at `window.joystick._external.<name>` (e.g., `window.joystick._external.stripe`).
+
+## Retrieving a tracked dependency
+
+While you _can_ access `window.joystick._external.<name>` directly, for the sake of convenience, Joystick provides the `joystick.external.get('<name>')`. Usage of this is recommended for guaranteed backwards compatibility and consistency in your own code.
+
+## API Reference
+
+Object API
+
+    external: {
+      track: (library_name: string, value_to_track: any) => void,
+      get: (library_name: string) => any,
+    }
+
+#### Parameters
+
+- track function
+
+  A `function` that takes the name of a library to track as a `string` and an arbitrary value representing the library as `any` type.
+
+- get function
+
+  A `function` that takes the name of a library to retrieve from `window.joystick._external` as a `string`.

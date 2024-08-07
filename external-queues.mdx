@@ -1,0 +1,143 @@
+---
+title: "External Queues"
+---
+
+
+#### Warning: Advanced Topic
+
+Using external queues is an advanced topic and is not recommended for beginners. Because this requires communication/configuration between Joystick apps, you should only attempt this if you feel comfortable with the following docs.
+
+For complex apps, it may be necessary to split work up across multiple apps (e.g., you have one app that is your main user-facing app and a separate Joystick app that functions as a job server).
+
+Assuming this pattern—a customer-facing app and a job server—we may need to support a situation where our app and job server connect to the same database, however, the job server is solely responsible for running our queues. To make this possible (and avoid having to wire up messy HTTP routes for sending jobs between apps), Joystick queues have the option of being flagged as `external: true`.
+
+Like the option name suggests, a queue that's flagged as `external: true` in one app is assumed to be managed by another app _externally_. The advantage being that while both apps can _add_ jobs to the queue, only one app is responsible for _running_ those jobs (in this example, the job server).
+
+/index.server.js (User-Facing App)
+
+```js
+    import joystick from '@joystick.js/node';
+    
+    joystick.app({
+      queues: {
+        encoder: {
+          external: true,
+        },
+      },
+      routes: { ... },
+    });
+```    
+
+In the above example, we're defining the queue `encoder` as being external (we're assuming the above code is defined in our user-facing app). In the `settings.<env>.json` file for our user-facing app, we'd have:
+
+/settings.development.json (User-Facing App)
+
+```json
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "users": true,
+            "queues": true,
+            "options": {}
+          },
+        ],
+        ...
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+   ``` 
+
+Here, ``this tells us that our MongoDB database is responsible for storing the jobs for our queues via the `"queues": true` flag. However, because we've specified `external: true` on the `encoder` queue definition in our app, Joystick will only _add_ jobs to the database collection/table for that queue—it will not start the tick to actually _run_ those jobs.
+
+/index.server.js (Job Server App)
+
+```js
+    import joystick from '@joystick.js/node';
+    
+    joystick.app({
+      queues: {
+        encoder: {
+          run_on_startup: true,
+          concurrent_jobs: 10,
+          jobs: {
+            encode_image: {
+              run: (payload = {}, job = {}) => {
+                // Handle work for the job here...
+              }
+            },
+          },
+        },
+      },
+      routes: { ... }
+    });
+```    
+
+In our job server app, above, we've defined the _actual_ queue that we'll be adding jobs to: `encoder`. In the `settings.<env>.json` file for the job server app, we want to configure our database to run our queues but also tell it to connect to the same database as our user-facing app:
+
+/settings.development.json (Job Server App)
+
+```js
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "queues": true,
+            "options": {},
+            "connection": {
+              "username": "",
+              "password": "",
+              "database": "app",
+              "hosts": [{
+                "hostname": "127.0.0.1",
+                "port": 2610
+              }]
+            }
+          }
+        ],
+        ...
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+```    
+
+Above, we assume that our user-facing app will start on port `2600` (the default port for Joystick) and its database will be started on port `2610` (Joystick automatically starts databases from the app's specified port number plus `10`). Following that assumption, we pass an explicit `connection` object to tell our job server app to connect to the database started by our user-facing app at `127.0.0.1:2610` (where `127.0.0.1` is the IP address for `localhost`).
+
+We also specify the `database` name as `app` which is the default database name used by Joystick. Above our connection, we make sure to set `"queues": true` so that our job server app knows to actually _run_ jobs in the queues it has defined.
+
+In this case, now, we expect the job server app to run any job added to the encoder queue (technically, the `queue_encoder` collection/table in the database), even if that job was added by our user-facing app.
+
+To make sense of this, in our user-facing app, assume we had the following code:
+
+/index.server.js (User-Facing App)
+
+```js
+    import joystick from '@joystick.js/node';
+    
+    joystick.app({
+      queues: {
+        encoder: {
+          external: true,
+        },
+      },
+      routes: { ... },
+    }).then(async () => {
+      await process.queues.encoder.add({
+        job: 'encode_image',
+        next_run_at: new Date().toISOString(),
+        payload: {
+          image_url: '...',
+        },
+      })
+    });
+```    
+
+Because the `encoder` queue is marked as `external: true`, this job will be added to the database, but the job server app will actually _run_ the job. The point being that we can have two separate Joystick apps "talking" to the same exact queue, but only one app will have its resources utilized for _running_ the job.
+
+Though advanced, the above pattern can enable much easier scaling for your app as a whole. It also improves the reliability of user-facing apps as there's no risk of a failed job bringing down a user-facing app (i.e., any failures are isolated to the job server and can be resolved independently of your user-facing app).

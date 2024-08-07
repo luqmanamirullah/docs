@@ -1,0 +1,163 @@
+---
+title: "File Structure"
+---
+
+# File Structure
+
+To increase the stability of Joystick and guarantee consistency and organization across your projects, Joystick strictly enforces its file structure. Ultimately, the goal of this is to ensure that you can move quickly and effortlessly between Joystick projects, or, come back to a project months or years later and avoid any confusion.
+
+When you run `joystick create <app_name>` via the CLI, Joystick will create a project with the following structure. A description of each folder/file (and whether or not it's required) can be found below.
+
+## Project Structure
+
+    /api
+    /css
+    /email
+    /fixtures
+    /i18n
+    -- /email
+    /indexes
+    /lib
+    -- /node
+    /node_modules
+    /private
+    /public
+    /queues
+    /routes
+    /uploaders
+    /tests
+    /ui
+    -- /components
+    -- /layouts
+    -- /pages
+    /websockets
+    index.client.js
+    index.css
+    index.html
+    index.server.js
+    package.json
+    settings.<env>.json
+
+## Directories
+
+- /api Required
+
+  Contains the API for your app in the form of sub-directories for each topic (e.g., `posts` or `users`) and in those directories, files for that topic's associated [Getters](node/app/api/getters), [Setters](node/app/api/setters), and [Actions](node/actions). At the root, it should contain an `index.js` file containing [the schema for your app's API](node/app/api/registering-getters-and-setters) (where you load all getters and setters).
+
+- /css
+
+  Contains CSS files for your app that can be imported into your [index.css](node/index-css) file at the root of your project.
+
+- /email Required
+
+  Contains the [base HTML templates](node/email/defining-a-base-template) and individual [email templates](node/email/defining-an-email-template) (as Joystick components) for your app.
+
+- /fixtures
+
+  Contains the fixtures (helpers for creating test data) for your app. It should contain one `.js` file for each data topic (e.g., `posts.js` or `users.js`) and each file should contain one [Fixture](node/fixtures) definition.
+
+- /i18n Required
+
+  Contains the [translation files](node/internationalization-i18n) for your app.
+
+  - /i18n/email Required
+
+    Contains the [translation files for your email templates](node/email/defining-an-email-template#internationalization-i18n).
+
+- /indexes
+
+  Contains files defining [index functions](node/database-indexes) for creating database indexes.
+
+- /lib Required
+
+  Contains miscellaneous files for your app. JavaScript files in this folder must be isomorphic (work in both a browser and Node.js environment).
+
+  - /lib/node Required
+
+    Contains miscellaneous files for your app that require a Node.js environment.
+
+- /private Required
+
+  Contains miscellaneous static files that are only accessible by server-side code in your app.
+
+- /public Required
+
+  Contains miscellaneous static files that are publicly accessible in your app.
+
+- /queues
+
+  Contains definitions for [job queues](node/app/queues/defining-a-queue) in your app.
+
+- /routes
+
+  Contains JavaScript files for routes in your app. Helpful for organizing groups of routes in a large app.
+
+- /tests Required
+
+  Contains JavaScript files containing [tests for your app](test/organizing-tests).
+
+- /ui Required
+
+  Contains the [Joystick components](ui/components/component-types) for your app's user interface.
+
+  - /ui/components Required
+
+    Contains standalone Joystick components for your app.
+
+  - /ui/layouts Required
+
+    Contains layout-purposed Joystick components for your app.
+
+  - /ui/pages Required
+
+    Contains page-purposed Joystick components for your app.
+
+- /uploaders
+
+  Contains JavaScript files containing [uploader definitions](node/app/uploaders/defining-an-uploader) for your app.
+
+- /websockets
+
+  Contains JavaScript files containing [websocket server definitions](node/app/websockets/defining-a-server) for your app.
+
+## Files
+
+- /index.client.js Required
+
+  Contains miscellaneous code that should be run universally on the client (e.g., initialization of analytics or metrics tracking libraries).
+
+- /index.css Required
+
+  Contains CSS that should be run universally on the client (e.g., CSS resets, colors, typography, etc).
+
+- /index.html Required
+
+  Contains the base HTML for the client, universal head tags, and the mount target for your app on the client (`<div id="app"></div>`).
+
+- /index.server.js Required
+
+  Contains the call to `joystick.app()` to configure and start your app's HTTP server.
+
+- /package.json Required
+
+  Contains the NPM `package.json` file for your app.
+
+- /package.json Required
+
+  Contains the NPM `package.json` file for your app.
+
+- /settings.<env>.json Required
+
+  The settings for your app's current environment (e.g., `settings.development.json` or `settings.production.json`).
+
+[](getting-started-tutorial/creating-your-first-app)
+
+#### Previous
+
+Creating Your First App
+
+[](getting-started-tutorial/environment-settings)
+
+#### Next
+
+Environment Settings

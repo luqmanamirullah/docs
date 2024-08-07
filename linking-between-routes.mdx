@@ -1,0 +1,72 @@
+---
+title: "Linking Between Routes"
+---
+
+# Linking Between Routes
+
+How to link multiple pages together in your app.
+
+To avoid excessive lock-in to Joystick, links in Joystick are just that: plain HTML links defined using HTML `<a></a>` tags.
+
+Extending our previous Getting Started example, let's add a second route that renders our existing index page component at `/ui/pages/index/index.js`:
+
+/index.server.js
+
+    import joystick from '@joystick.js/node';
+    import api from "./api/index.js";
+    import books_fixture from './fixtures/books.js';
+
+    joystick.app({
+      api,
+      fixtures: () => {
+        books_fixture();
+      },
+      routes: {
+        '/': (req = {}, res = {}) => {
+          res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+        '/another-page': (req = {}, res = {}) => {
+          res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+      },
+    });
+
+Above, we're defining a second route `/another-page` that will be accessible in our app at `http://localhost:2600/another-page` in development. Next, let's update our layout component at `/ui/layouts/app/index.js` to include a link to this new route:
+
+/ui/layouts/app/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const App = joystick.component({
+      render: ({ props, component }) => {
+        return `
+          <div class="app">
+            <nav>
+             <ul>
+               <li><a href="/">Home</a></li>
+               <li><a href="/another-page">Another Page</a></li>
+             </ul>
+            </nav>
+            ${component(props.page, props)}
+          </div>
+        `;
+      },
+    });
+
+That's all we need. Now, when a user clicks on the "Another Page" item in our navigation, they'll go to that route. This applies to all links in your app. Notice that we've left off the `http://...` part here. This is because the browser will automatically prefix the current protocol and domain to our link's `href` value for us if we don't provide one.
+
+[](getting-started-tutorial/rendering-a-component)
+
+#### Previous
+
+Rendering a Component
+
+[](getting-started-tutorial/composing-components)
+
+#### Next
+
+Composing Components

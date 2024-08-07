@@ -1,0 +1,69 @@
+---
+title: "I18n()"
+---
+
+# i18n()
+
+The `i18n()` render method is a function that takes in a `string` value referencing a path in a translation file along with an optional `object` containing replacements.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      render: ({ i18n }) => {
+        return `
+          <div>
+            <p>${i18n('titles.translation_example', { random_number: Math.random() })}</p>
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+```
+Given a translation file has been mapped to the component being rendered (either a translation file specific to the page being rendered, or, an entire translation file for a given language), the `i18n()` tag will obtain the `string` at the given path and return it. If the matching `string` includes any replacement placeholders like `{{random_number}}`, they will be replaced with the value passed via the replacements `object` in the second object.
+
+#### Requires a translation file
+
+In order for translations to work, a matching translation file needs to be provided on the server. To learn how this works, read the defining translations documentation.
+
+Assuming a translation file like the following:
+
+/i18n/en-US.js
+
+
+```js
+    {
+      "titles": {
+        "translation_example": "Hey, this is a translation with a random number {{random_number}} in it."
+      },
+    }
+```
+We'd expect the above component to render the following HTML:
+
+```html
+    <div>
+      <p>Hey, this is a translation with a random number {{random_number}} in it.</p>
+    </div>
+```
+## API Reference
+
+### i18n()
+
+#### Function API
+
+Function API
+
+    i18n(translation: string, replacements: object) => string;
+
+#### Arguments
+
+- translation boolean Required
+
+  A `string` specifying a path in a translation file to render. If the expected `string` is nested within one or more objects in the translation file, dot notation can be used to specify the translation's path.
+
+- replacements object
+
+  An `object` of key/value pairs containing replacements for the `string` matching the `translation` path.

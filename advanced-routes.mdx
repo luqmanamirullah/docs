@@ -1,0 +1,100 @@
+---
+title: "Advanced Routes"
+---
+
+# Advanced Routes
+
+How to implement routes with additional functionality for things like non-GET HTTP methods and custom middleware.
+
+If you need to implement a route that uses an HTTP method other than `GET`, you can use an advanced route definition.
+
+/index.server.js
+```js
+    import joystick from '@joystick.js/node';
+    
+    joystick.app({
+      routes: {
+        '/': {
+          method: 'GET',
+          handler: (req = {}, res = {}) => {
+            return res.status(200).send('Howdy');
+          }
+        },
+      },
+    });
+```    
+
+Instead of assigning a callback function to your route, assign an object. On that object, specify either a single `method` option as a `string` (can be one of `OPTIONS`, `HEAD`, `CONNECT`, `GET`, `POST`, `PUT`, `DELETE`, or `PATCH`), or, to support multiple methods on a single route a `methods` option, set to an array of HTTP methods as `string`s.
+
+Your route's callback should be assigned to the `handler` property. The behavior here is identical to a basic route definition.
+
+## Route Middleware
+
+If you need to run route-specific middleware, advanced route definitions support the addition of a `middleware` array containing standard Express middleware functions.
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+    import custom_middleware from 'middleware-package';
+    
+    joystick.app({
+      routes: {
+        '/': {
+          methods: ['POST', 'PUT'],
+          middleware: [
+            custom_middleware,
+            (req = {}, res = {}, next = {}) => {
+              if (!req.body) {
+                return res.redirect('/404');
+              }
+             
+              next();
+            }
+          ],
+          handler: (req = {}, res = {}) => {
+            return res.status(200).send('Howdy');
+          }
+        },
+      },
+    });
+```    
+
+## API Reference
+
+### Route Definition API
+
+Route Definition API
+
+```js
+    {
+      [route_path: string]: {
+        method: string,
+        methods: array[string],
+        middleware: array[function],
+        handler: (req: object, res: object) => void,
+      }
+    }
+```    
+
+### Parameters
+
+*   route\_path object Required
+    
+    The route path to define as a string, assigned an object for its definition. Below, either `method` or `methods` must be defined in order for the route to be registered.
+    
+    *   method string
+        
+        The HTTP method for the route as a string (one of: \`GET\`, \`POST\`, \`PUT\`, \`PATCH\`, \`DELETE\`, or \`OPTIONS\`).
+        
+    *   methods array\[string\]
+        
+        An array containing one or more HTTP methods for the route as strings for the route (one of: \`GET\`, \`POST\`, \`PUT\`, \`PATCH\`, \`DELETE\`, or \`OPTIONS\`).
+        
+    *   middleware array
+        
+        An optional array of Express middleware functions to run before the route's `handler()` method.
+        
+    *   handler function Required
+        
+        The callback function for the route. Receives the inbound `req` and \``res`\` objects.

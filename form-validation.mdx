@@ -1,0 +1,207 @@
+---
+title: "Form Validation"
+---
+
+# Form Validation
+
+To help with form validation, Joystick includes a built-in form validation library that's accessible directly via the component instance.
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      events: {
+        'submit form': (event = {}, instance = {}) => {
+          event.preventDefault();
+          instance.validate_form(event.target, {
+            rules: {
+              email_address: {
+                required: true,
+                email: true,
+              },
+            },
+            messages: {
+              email_address: {
+                required: 'An email address is required.',
+                email: 'A valid email is required.',
+              },
+            },
+          }).then(() => {
+            // Form is valid. Handle submission here.
+          }).catch(() => {
+            // Form is invalid. Handle warnings, etc., here.
+          });
+        },
+      },
+      render: () => {
+        return `
+          <div>
+            <form>
+              <label>Email Address</label>
+              <input type="email" name="email_address" placeholder="Email Address" />
+              <button type="submit">Subscribe</button>
+            </form>
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+
+The form validator is accessed via the component instance as `component.validate_form()`. It takes two arguments: the DOM element representing the `<form></form>` you wish to validate and an options object containing the validation rules and error messages to render if the user's input fails validation.
+
+On the options object, the `rules` property is set to an object where each of its properties corresponds to the `name` attribute on some input in your form. Set to that property is another object containing the rules for that field.
+
+When `component.validate_form()` is called, it will attempt to validate the form per the rules you've specified. If it succeeds, it will resolve the JavaScript Promise it returns (meaning you can handle any post-validation work in the `.then()` callback of `component.validate_form()`). If it fails, error messages will automatically be rendered beneath the offending inputs and the JavaScript Promise returned is rejected (meaning you can handle any failure in the `.catch()` callback of `component.validate_form()`).
+
+## Error placement
+
+By default, Joystick will automatically render error messages immediately after the offending input. In the event that your UI requires a different location, the `on_render_error()` option can be added to the options object passed to `instance.validate_form()`:
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      events: {
+        'submit form': (event = {}, instance = {}) => {
+          event.preventDefault();
+          instance.validate_form(event.target, {
+            rules: {
+              email_address: {
+                required: true,
+                email: true,
+              },
+            },
+            messages: {
+              email_address: {
+                required: 'An email address is required.',
+                email: 'A valid email is required.',
+              },
+            },
+            on_render_error: (element = {}, message = '') => {
+              const error = document.createElement('p');
+              error.classList.add('input-hint', 'error');
+              error.setAttribute('id', `error-${element.name}`);
+              error.innerText = message;
+              return element?.closest('form').before(error);
+            },
+          }).then(() => {
+            // Form is valid. Handle submission here.
+          }).catch(() => {
+            // Form is invalid. Handle warnings, etc., here.
+          });
+        },
+      },
+      render: () => {
+        return `
+          <div>
+            <form>
+              <label>Email Address</label>
+              <input type="email" name="email_address" placeholder="Email Address" />
+              <button type="submit">Subscribe</button>
+            </form>
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+
+Instead of allocation errors to _after_ the offending input, above, we use `on_render_error()` to move the error messages to render above the `<form></form>` element.
+
+## Validation Rules
+
+Currently, `component.validate_form()` offers the following validation rules:
+
+- credit_card (alias: creditCard) boolean
+
+  Validates whether the field's input contains a valid credit card number.
+
+- email boolean
+
+  Validates whether the field's input contains a valid email address.
+
+- equals string
+
+  Validates whether the field's input is equal to the rule's value.
+
+- matches any
+
+  Validates whether the field's input matches (in value and type) the rule's value.
+
+- max_length (alias: maxLength) integer
+
+  Validates whether the field's input is less than or equal to the rule's value.
+
+- min_length (alias: minLength) integer
+
+  Validates whether the field's input is greater than or equal to the rule's value.
+
+- phone boolean
+
+  Validates whether the field's input is a telephone number.
+
+- postal_code (alias: postalCode) boolean|{ ISO: '<pattern>', rule: boolean }
+
+  Validates whether the field's input is a postal code (zip code). If defined as an object, regex will be set to the postal code pattern for the specified [ISO code](https://gist.github.com/jamesbar2/1c677c22df8f21e869cca7e439fc3f5b).
+
+- required boolean
+
+  Validates whether the field's input exists or not.
+
+- semver (alias: semVer) boolean
+
+  Validates whether the field's input is a [semantic version](https://semver.org/).
+
+- slug boolean
+
+  Validates whether the field's input is a slug `a-slug-like-this`.
+
+- strong_password (alias: strongPassword) boolean
+
+  Validates whether the field's input confirms to a strong password regex matching a string with a minimum of eight characters, at least one upper case English letter, one lower case English letter, one number, and one special character.
+
+- url boolean
+
+  Validates whether the field's input is a valid URL.
+
+- vat boolean|{ ISO: '<pattern>', rule: boolean }
+
+  Validates whether the field's input is a valid VAT code. If defined as an object, regex will be set to the postal code pattern for the specified [ISO code](https://gist.github.com/marcinlerka/630cc05d11bb10c5f1904506ff92abcd).
+
+## API Reference
+
+### validate_form()
+
+#### Function API
+
+Function API
+
+    validate_form(form_dom_node: DOMNode, options: object) => Promise;
+
+    // Alias:
+    validateForm(form_dom_node: DOMNode, options: object) => Promise;
+
+#### Arguments
+
+- form_dom_node DOMNode Required
+
+  A `DOMNode` for the `<form></form>` being validated.
+
+- options object
+
+  An `object` containing options for performing the form validation.
+
+  - rules object
+
+    An `object` containing the validation rules. Each rule should be given a name matching the input's `name` attribute and assigned an object containing [validation rules](#validation-rules).
+
+  - messages object
+
+    An `object` containing error messages for each of the validation rules. Each message should be given a name matching the input's `name` attribute and assigned an object containing strings assigned to the corresponding [validation rules](#validation-rules).
+
+  - on_render_error function
+
+    A `function` that receives the offending input's `element` and the matching error `message` for the failed validation rule.

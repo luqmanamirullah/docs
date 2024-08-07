@@ -1,0 +1,83 @@
+---
+title: "Queueing A Job"
+---
+
+
+Once a queue is [defined](node/app/queues/defining-a-queue) and [registered](node/app/queues/registering-queues), jobs can be added to it via the global `process.queues.<queue_name>.add()` function from anywhere on your server. Consider the following setter which adds an in-app notification to the database and then queues up an email version to be sent out ASAP:
+
+/api/notifications/setters.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    const setters = {
+      send_notification: {
+        input: {
+          user_id: {
+            type: 'string',
+            required: true,
+          },
+          message: {
+            type: 'string',
+            required: true,
+          },
+        },
+        set: async (input = {}) => {
+          const notification_id = joystick.id();
+
+          await process.databases.mongodb.collection('notifications').insertOne({
+            _id: notification_id,
+            ...input,
+          });
+
+          await process.queues.notifications.add({
+            job: 'send_notification_via_email',
+            next_run_at: new Date().toISOString(),
+            payload: {
+              notification_id,
+            }
+          });
+        },
+      },
+    };
+
+    export default setters;
+```
+
+Above, to add the job, we call to `process.queues.notifications.add()` where `notifications` is the name of the [queue we defined](node/app/queues/defining-a-queue). To `.add()`, we pass an options `object` containing:
+
+- `job` as the name of the job in our queue definition's `jobs` object.
+- `next_run_at` an ISO-8601 timestamp describing when the job should run next.
+- `payload` an object of key/value pairs that provide additional metadata to the job at run time.
+
+When this function is called, assuming no rules defined on the job prevent it, this job will be added to the queue and be run ASAP (we say ASAP because we set the `next_run_at` timestamp to _now_, but depending on our queue's `concurrent_jobs` setting and other rules, it may run in the future).
+
+## API Reference
+
+### `process.queues.<queue_name>.add()`
+
+#### Function API
+
+Function API
+
+```js
+    process.queues.<queue_name>.add(options: object) => any;
+```
+
+#### Parameters
+
+- options object Required
+
+  Options defining the job to add to the queue.
+
+  - job string Required
+
+    The name of the job to run as defined in the [queue definition](node/app/queues/defining-a-queue).
+
+  - next_run_at (alias: nextRunAt) string
+
+    An ISO-8601 string specifying the date/time when the job should run. Relative to other jobs in the queue, job will run as close to this timestamp as possible.
+
+  - payload object
+
+    An object containing key/value pairs to pass to the job's `run()` method at run time. Should contain any data necessary for performing the job.

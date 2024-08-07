@@ -1,0 +1,60 @@
+---
+title: "Accessing Databases In Tests"
+---
+
+# Accessing Databases in Tests
+
+Similar to your application code, databases connected to your app can be accessed via the `process.databases` object directly within your tests:
+
+/tests/lib/add.test.js
+
+```javascript
+import test from "@joystick.js/test";
+
+test.that("add function adds two numbers together", async (assert = {}) => {
+  const seed_database = await test.load("lib/seed_database.js", {
+    default: true,
+  });
+  await seed_database();
+  const posts = await process.databases.mongodb.collection("posts").find();
+
+  assert.is(posts?.length >= 5, true);
+});
+```
+
+When you run `joystick test` via the Joystick CLI, the CLI will start the databases specified in your `settings.test.json` file at the root of your app. For each database, a server will be started (starting from port `1987` as the default Joystick test app port is `1977`).
+
+#### 100% Isolated Data
+
+The data created during tests is entirely independent from your app. This gives you a 100% safe way to interact with your database just like you would in your app code, but avoid costly accidents that impede development.
+
+## Database Cleanup
+
+Although the data created during tests is isolated, it still lives on disk. It's ```javascript
+important to follow the standard testing methodology of: setup, test/execute, verify, teardown where "teardown" involves writing code to clean up your test database after each test. A quick refactor of the example test above might look like the following:
+
+```javascript
+import test from "@joystick.js/test";
+
+test.that("add function adds two numbers together", async (assert = {}) => {
+  const seed_database = await test.load("lib/seed_database.js", {
+    default: true,
+  });
+  await seed_database();
+  const posts = await process.databases.mongodb.collection("posts").find();
+
+  assert.is(posts?.length >= 5, true);
+});
+```
+
+// NOTE: test.after() runs after _all_ tests in the file are complete.
+// To run code after _each_ test, test.after_each() can be used instead.
+test.after(async () => {
+await process.databases.mongodb.collection('posts').deleteMany({});
+});
+
+This ensures that you don't overwhelm the machine where your tests are being run and future test runs beyond the current file aren't tripped up by unexpected data.
+
+```
+
+```

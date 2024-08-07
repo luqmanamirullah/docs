@@ -1,0 +1,11 @@
+---
+title: "Settings.Test.Json"
+---
+
+# settings.test.json
+
+To keep your code as isolated as possible, when running tests, Joystick expects you to have a settings file located in the root of your app at `/settings.test.json`. The structure of this file should follow the [standard process for defining settings](settings/defining-settings) for your app, however, its contents should be specific to writing your tests.
+
+## Databases
+
+If you'd like to [access your app's database in tests](test/accessing-databases-in-tests), it's import that the `config.databases` array in your `settings.test.json` file has the same databases defined as your `settings.development.json` file (and other environment's settings files). This ensures that the tests you write accessing the database are consistent with actual application code and that your tests are not fragile.

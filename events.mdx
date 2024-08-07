@@ -1,0 +1,44 @@
+---
+title: "Events"
+---
+
+# Events
+
+To handle user interactions, DOM event listeners can be added via the `events` object on the options object for your component. When you define events, Joystick automatically registers event listeners using the built-in JavaScript `.addEventListener()` method, scoped to the specified selector _within_ the current component instance.
+
+Joystick also handles cleanup of listeners between renders to ensure duplicate listeners are not attached unexpectedly.
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      events: {
+        'click button': (event = {}, instance = {}) => {
+          window.alert('DOM event detected!');
+        },
+      },
+      render: () => {
+        return `
+          <div>
+            <button>Click Me</button>
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+
+Above, we've defined a simple DOM event listener via the `events` option on our component. Here, an event listener is defined by specifying a key/value pair on `events` where they key is a string combining a standard DOM event `click` followed by a space and then the DOM selector `button` to attach the listener to. As a value, we pass a function that's called whenever the specified event is detected on the selector. In this case, when we `click` on the `button` in our component, the specified function will fire.
+
+To that function, we receive the native DOM event (Joystick doesn't modify the event—it passes it directly as it's received from `.addEventListener()`) and the component instance.
+
+Though our selector here is just a plain HTML element, any selector that you'd pass to something like `document.querySelector('.some-css-class')` would work just the same.
+
+### API Reference
+
+Object API
+
+    events: {
+      '<event_name> <selector>': (event: DOMEvent, instance: object) => void;
+    };

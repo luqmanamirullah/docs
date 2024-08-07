@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "Starter Kit",
   "logo": {
-    "dark": "/logo/dark.svg",
+    "dark": "/logo/logo.svg",
     "light": "/logo/light.svg"
   },
   "favicon": "/favicon.svg",
@@ -50,380 +50,173 @@
   ],
   "navigation": [
     {
-      "group": "Index",
+      "group": "",
       "pages": [
-        {
-          "group": "What is Joystick?",
-          "pages": ["what-is-joystick?"]
-        },
-        {
-          "group": "Philosophy",
-          "pages": ["philosophy"]
-        },
-        {
-          "group": "Versioning",
-          "pages": ["versioning"]
-        },
-        {
-          "group": "License",
-          "pages": ["license"]
-        },
-        {
-          "group": "Port Occupied",
-          "pages": ["port-occupied"]
-        },
-        {
-          "group": "PostgreSQL Version",
-          "pages": ["postgresql-version"]
-        },
-        {
-          "group": "Introduction",
-          "pages": ["introduction"]
-        },
-        {
-          "group": "Installing Joystick",
-          "pages": ["installing-joystick"]
-        },
-        {
-          "group": "Installing Databases",
-          "pages": ["installing-databases"]
-        },
-        {
-          "group": "Creating Your First App",
-          "pages": ["creating-your-first-app"]
-        },
-        {
-          "group": "File Structure",
-          "pages": ["file-structure"]
-        },
-        {
-          "group": "Environment Settings",
-          "pages": ["environment-settings"]
-        },
-        {
-          "group": "Adding a Database",
-          "pages": ["adding-a-database"]
-        },
-        {
-          "group": "Creating Fixture Data",
-          "pages": ["creating-fixture-data"]
-        },
-        {
-          "group": "Defining a Server",
-          "pages": ["defining-a-server"]
-        },
-        {
-          "group": "Defining a Route",
-          "pages": ["defining-a-route"]
-        },
-        {
-          "group": "Defining a Component",
-          "pages": ["defining-a-component"]
-        },
-        {
-          "group": "Rendering a Component",
-          "pages": ["rendering-a-component"]
-        },
-        {
-          "group": "Linking Between Routes",
-          "pages": ["linking-between-routes"]
-        },
-        {
-          "group": "Composing Components",
-          "pages": ["composing-components"]
-        },
-        {
-          "group": "Defining a Getter",
-          "pages": ["defining-a-getter"]
-        },
-        {
-          "group": "Defining a Setter",
-          "pages": ["defining-a-setter"]
-        },
-        {
-          "group": "Registering Your API",
-          "pages": ["registering-your-api"]
-        },
-        {
-          "group": "Getting Data",
-          "pages": ["getting-data"]
-        },
-        {
-          "group": "Setting Data",
-          "pages": ["setting-data"]
-        },
-        {
-          "group": "Going Further",
-          "pages": ["going-further"]
-        },
-        {
-          "group": "Defining Settings",
-          "pages": ["defining-settings"]
-        },
-        {
-          "group": "build",
-          "pages": ["build"]
-        },
-        {
-          "group": "create",
-          "pages": ["create"]
-        },
-        {
-          "group": "logout",
-          "pages": ["logout"]
-        },
-        {
-          "group": "push",
-          "pages": ["push"]
-        },
-        {
-          "group": "start",
-          "pages": ["start"]
-        },
-        {
-          "group": "test",
-          "pages": ["test"]
-        },
-        {
-          "group": "update",
-          "pages": ["update"]
-        },
-        {
-          "group": "use",
-          "pages": ["use"]
-        },
-        {
-          "group": "Providers",
-          "pages": ["providers"]
-        },
-        {
-          "group": "Connecting a Remote Database",
-          "pages": ["connecting-a-remote-database"]
-        },
-        {
-          "group": "Connecting Multiple Databases",
-          "pages": ["connecting-multiple-databases"]
-        },
-        {
-          "group": "Queues",
-          "pages": ["queues"]
-        },
-        {
-          "group": "Sessions",
-          "pages": ["sessions"]
-        },
-        {
-          "group": "Users",
-          "pages": ["users"]
-        },
-        {
-          "group": "Adding a Role",
-          "pages": ["adding-a-role"]
-        },
-        {
-          "group": "Deleting a Role",
-          "pages": ["deleting-a-role"]
-        },
-        {
-          "group": "Granting a Role",
-          "pages": ["granting-a-role"]
-        },
-        {
-          "group": "Revoking a Role",
-          "pages": ["revoking-a-role"]
-        },
-        {
-          "group": "Event Hooks",
-          "pages": ["event-hooks"]
-        },
-        {
-          "group": "Log In",
-          "pages": ["log-in"]
-        },
-        {
-          "group": "Recover Password",
-          "pages": ["recover-password"]
-        },
-        {
-          "group": "Reset Password",
-          "pages": ["reset-password"]
-        },
-        {
-          "group": "Sign Up",
-          "pages": ["sign-up"]
-        },
-        {
-          "group": "Validating Signup Metadata",
-          "pages": ["validating-signup-metadata"]
-        },
-        {
-          "group": "Authorization",
-          "pages": ["authorization"]
-        },
-        {
-          "group": "Getters",
-          "pages": ["getters"]
-        },
-        {
-          "group": "Middleware",
-          "pages": ["middleware"]
-        },
-        {
-          "group": "Registering Getters & Setters",
-          "pages": ["registering-getters-&-setters"]
-        },
-        {
-          "group": "Sanitization",
-          "pages": ["sanitization"]
-        },
-        {
-          "group": "Setters",
-          "pages": ["setters"]
-        },
-        {
-          "group": "Validating Input",
-          "pages": ["validating-input"]
-        },
-        {
-          "group": "Defining a Cron Job",
-          "pages": ["defining-a-cron-job"]
-        },
-        {
-          "group": "Registering Cron Jobs",
-          "pages": ["registering-cron-jobs"]
-        },
-        {
-          "group": "Defining a Database for Queues",
-          "pages": ["defining-a-database-for-queues"]
-        },
-        {
-          "group": "Defining a Queue",
-          "pages": ["defining-a-queue"]
-        },
-        {
-          "group": "External Queues",
-          "pages": ["external-queues"]
-        },
-        {
-          "group": "Queueing a Job",
-          "pages": ["queueing-a-job"]
-        },
-        {
-          "group": "Registering Queues",
-          "pages": ["registering-queues"]
-        },
-        {
-          "group": "Accessing Databases",
-          "pages": ["accessing-databases"]
-        },
-        {
-          "group": "Advanced Routes",
-          "pages": ["advanced-routes"]
-        },
-        {
-          "group": "Basic Routes",
-          "pages": ["basic-routes"]
-        },
-        {
-          "group": "req.context.user",
-          "pages": ["req.context.user"]
-        },
-        {
-          "group": "req.context.if_logged_in()",
-          "pages": ["req.context.if_logged_in()"]
-        },
-        {
-          "group": "req.context.if_not_logged_in()",
-          "pages": ["req.context.if_not_logged_in()"]
-        },
-        {
-          "group": "res.render()",
-          "pages": ["res.render()"]
-        },
-        {
-          "group": "Defining an Uploader",
-          "pages": ["defining-an-uploader"]
-        },
-        {
-          "group": "Defining a Server",
-          "pages": ["defining-a-server"]
-        },
-        {
-          "group": "Sending a Websocket Message",
-          "pages": ["sending-a-websocket-message"]
-        },
-        {
-          "group": "Defining an App Server",
-          "pages": ["defining-an-app-server"]
-        },
-        {
-          "group": "Defining a Base Template",
-          "pages": ["defining-a-base-template"]
-        },
-        {
-          "group": "Defining an Email Template",
-          "pages": ["defining-an-email-template"]
-        },
-        {
-          "group": "Sending an Email",
-          "pages": ["sending-an-email"]
-        },
-        {
-          "group": "index.html",
-          "pages": ["index.html"]
-        },
-        {
-          "group": "Actions",
-          "pages": ["actions"]
-        },
-        {
-          "group": "Content Security Policy (CSP)",
-          "pages": ["content-security-policy-(csp)"]
-        },
-        {
-          "group": "CSRF Protection",
-          "pages": ["csrf-protection"]
-        },
-        {
-          "group": "Database Indexes",
-          "pages": ["database-indexes"]
-        },
-        {
-          "group": "Escaping HTML",
-          "pages": ["escaping-html"]
-        },
-        {
-          "group": "Fixtures",
-          "pages": ["fixtures"]
-        },
-        {
-          "group": "Internationalization (i18n)",
-          "pages": ["internationalization-(i18n)"]
-        },
-        {
-          "group": "Middleware",
-          "pages": ["middleware"]
-        },
-        {
-          "group": "Node.js Event Listeners",
-          "pages": ["node.js-event-listeners"]
-        },
-        {
-          "group": "Origin",
-          "pages": ["origin"]
-        },
-        {
-          "group": "Push",
-          "pages": ["push"]
-        },
-        {
-          "group": "Schema Validation",
-          "pages": ["schema-validation"]
-        },
-        {
-          "group": "SQL",
-          "pages": ["sql"]
-        },
+        "what-is-joystick",
+        "philosophy",
+        "versioning",
+        "license",
+        {
+          "group": "Troubleshoting",
+          "pages": [
+            "troubleshooting/port-occupied",
+            "troubleshooting/postgresql-version"
+          ]
+        },
+        {
+          "group": "Getting Started",
+          "pages": [
+            "getting-started/introduction",
+            "getting-started/installing-joystick",
+            "getting-started/installing-databases",
+            "getting-started/creating-your-first-app",
+            "getting-started/file-structure",
+            "getting-started/environment-settings",
+            "getting-started/adding-a-database",
+            "getting-started/creating-fixture-data",
+            "getting-started/defining-a-server",
+            "getting-started/defining-a-route",
+            "getting-started/defining-a-component",
+            "getting-started/rendering-a-component",
+            "getting-started/linking-between-routes",
+            "getting-started/composing-components",
+            "getting-started/defining-a-getter",
+            "getting-started/defining-a-setter",
+            "getting-started/registering-your-api",
+            "getting-started/getting-data",
+            "getting-started/setting-data",
+            "getting-started/going-further"
+          ]
+        },
+        {
+          "group": "Settings",
+          "pages": ["settings/defining-settings"]
+        },
+        {
+          "group": "CLI",
+          "pages": [
+            "cli/build",
+            "cli/create",
+            "cli/push",
+            "cli/start",
+            "cli/test",
+            "cli/update",
+            "cli/use"
+          ]
+        },
+        {
+          "group": "Databases",
+          "pages": [
+            "databases/providers",
+            "databases/connecting-a-remote-database",
+            "databases/connecting-multiple-databases",
+            "databases/queues",
+            "databases/sessions",
+            "databases/users"
+          ]
+        },
+        {
+          "group": "Node",
+          "pages": [
+            {
+              "group": "Accounts",
+              "pages": [
+                {
+                  "group": "Roles",
+                  "pages": [
+                    "node/accounts/roles/adding-a-role",
+                    "node/accounts/roles/deleting-a-role",
+                    "node/accounts/roles/granting-a-role",
+                    "node/accounts/roles/revoking-a-role"
+                  ]
+                },
+                "node/accounts/event-hooks",
+                "node/accounts/log-in",
+                "node/accounts/recover-password",
+                "node/accounts/reset-password",
+                "node/accounts/sign-up",
+                "node/accounts/validating-signup-metadata"
+              ]
+            },
+            {
+              "group": "App",
+              "pages": [
+                {
+                  "group": "API",
+                  "pages": [
+                    "authorization",
+                    "getters",
+                    "middleware",
+                    "registering-getters-&-setters",
+                    "sanitization",
+                    "setters",
+                    "validating-input"
+                  ]
+                },
+                {
+                  "group": "Cron Jobs",
+                  "pages": ["defining-a-cron-job", "registering-cron-jobs"]
+                },
+                {
+                  "group": "Queues",
+                  "pages": [
+                    "defining-a-database-for-queues",
+                    "defining-a-queue",
+                    "external-queues",
+                    "queueing-a-job",
+                    "registering-queues"
+                  ]
+                },
+                {
+                  "group": "Routes",
+                  "pages": [
+                    "advanced-routes",
+                    "basic-routes",
+                    "req.context.user",
+                    "req.context.if_logged_in()",
+                    "req.context.if_not_logged_in()",
+                    "res.render()"
+                  ]
+                },
+                {
+                  "group": "Uploaders",
+                  "pages": ["node/app/uploaders/defining-an-uploader"]
+                },
+                {
+                  "group": "Websockets",
+                  "pages": ["defining-a-server", "sending-a-websocket-message"]
+                },
+                "defining-an-app-server"
+              ]
+            },
+            {
+              "group": "Email",
+              "pages": [
+                "defining-a-base-template",
+                "defining-an-email-template",
+                "sending-an-email"
+              ]
+            },
+            "index.html",
+            "actions",
+            "content-security-policy-(csp)",
+            "csrf-protection",
+            "database-indexes",
+            "escaping-html",
+            "fixtures",
+            "middleware",
+            "node.js-event-listeners",
+            "origin",
+            "push",
+            "schema-validation",
+            "sql"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "UI",
+      "pages": [
         {
           "group": "Log In",
           "pages": ["log-in"]
@@ -567,7 +360,12 @@
         {
           "group": "Uploading Files",
           "pages": ["uploading-files"]
-        },
+        }
+      ]
+    },
+    {
+      "group": "Tests",
+      "pages": [
         {
           "group": "settings.test.json",
           "pages": ["settings.test.json"]
@@ -633,4 +431,3 @@
     "linkedin": "https://www.linkedin.com/company/mintsearch"
   }
 }
-

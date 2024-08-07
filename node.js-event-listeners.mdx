@@ -1,0 +1,51 @@
+---
+title: "Node.Js Event Listeners"
+---
+
+
+If you'd like to instrument your server using a custom monitoring tool or a third-party monitoring tool, you can hook into the standard Node.js events via the `events` object passed as an option to the options object passed to `joystick.app()` in `index.server.js`.
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      events: {
+        error: (error) => {
+          // Handle error event...
+        },
+        beforeExit: (error) => {
+          // Handle beforeExit event...
+        },
+        disconnect: (error) => {
+          // Handle disconnect event...
+        },
+        exit: (error) => {
+          // Handle exit event...
+        },
+        message: (error) => {
+          // Handle message event...
+        },
+        rejectionHandled: (error) => {
+          // Handle rejectionHandled event...
+        },
+        uncaughtException: (error) => {
+          // Handle uncaughtException event...
+        },
+        uncaughtExceptionMonitor: (error) => {
+          // Handle uncaughtExceptionMonitor event...
+        },
+        unhandledRejection: (error) => {
+          // Handle unhandledRejection event...
+        },
+        warning: (error) => {
+          // Handle warning event...
+        },
+        worker: (error) => {
+          // Handle worker event...
+        },
+      },
+      routes: { ... }
+    })
+    ```

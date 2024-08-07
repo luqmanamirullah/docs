@@ -1,0 +1,75 @@
+---
+title: "API Reference"
+---
+
+# API Reference
+
+#### Function API
+
+Function API
+
+    joystick.component(options: object) => function;
+    
+
+#### Options
+
+*   css string|object|function
+    
+    A `string`, `object`, or `function` returning the CSS for the component.
+    
+*   data function
+    
+    A `function` returning data to fetch when the component is server-side rendered.
+    
+*   default\_props object
+    
+    An `object` default prop values for the component.
+    
+*   events object
+    
+    An `object` defining event listeners for the component.
+    
+*   lifecycle object
+    
+    An `object` defining lifecycle method hooks for the component.
+    
+*   methods object
+    
+    An `object` defining miscellaneous methods for the component.
+    
+*   render function Required
+    
+    A `function` returning a string of HTML to render for the component.
+    
+*   state object|function
+    
+    An `object` or `function` returning an object defining the default state for the component.
+    
+*   test object
+    
+    An `object` containing test-related options for the component.
+    
+    *   name string
+        
+        A name identifier to use when tracking function calls to the component instance in tests.
+        
+    
+*   websockets function
+    
+    A `function` returning an object defining the websocket server endpoints to establish a client connection to.
+    
+*   wrapper object
+    
+    An `object` specifying the HTML tag and `classList` for a component's Joystick wrapper element.
+    
+    *   id string
+        
+        A `string` specifying the HTML `id` attribute to set on the component's Joystick wrapper element.
+        
+    *   class\_list (alias: classList) array\[string\]
+        
+        An `array` of `string`s denoting class names to add to the component's Joystick wrapper element.
+        
+    *   tag\_name (alias: tagName) string
+        
+        A `string` containing a valid HTML element tag name (e.g., `div` or `ul`).

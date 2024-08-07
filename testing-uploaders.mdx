@@ -1,0 +1,71 @@
+---
+title: "Testing Uploaders"
+---
+
+# Testing Uploaders
+
+To verify that one of your [uploaders](node/app/uploaders/defining-an-uploader) is working as expected, the `test.uploaders.upload()` method can be utilized:
+
+/tests/uploaders/profile_photo.js
+
+    import test from '@joystick.js/test';
+
+    test.that('uploader works as expected', async (assert = {}) => {
+      const user = await test.accounts.signup({
+        email_address: 'tommy@callahanauto.com',
+        password: 'chickenwings',
+        metadata: {
+          name: 'Tommy Callahan',
+        },
+      });
+
+      const response = await test.uploaders.upload('profile_photo', {
+        user,
+        files: [test.utils.create_file(256, 'headshot.jpg', 'image/jpg')],
+        input: {
+          description: 'Tommy in a suit and tie.',
+        }
+      });
+
+      assert.is(response[0]?.url === 'uploads/profile_photos/headshot.jpg', true);
+    });
+
+Above, we start our test by creating a user who will be associated with the file being uploaded. Next, we call to our `profile_photo` uploader, assuming that the uploader will upload a profile photo to the `uploads/profile_photos` directory in our app. To keep our test stable, we use the `test.utils.create_file()` method to generate a mock `.jpg` file in memory with 256 bytes of data.
+
+Additionally, we also pass an `input` object with a `description` of the photo being uploaded.
+
+#### Uploads are hot/real
+
+Keep in mind that files uploaded by your tests are _actually uploaded to your specified providers_. This is done to verify that uploads actually work. It's recommended that if you're uploading to a non-local upload target, you use that provider's APIs (e.g., Amazon S3) to verify the upload exists in the specified location.
+
+## Function API
+
+### test.uploaders.upload()
+
+#### Function API
+
+Function API
+
+    test.uploaders.upload(uploader_name: string, options: object) => Promise;
+
+#### Arguments
+
+- uploader_name string Required
+
+  The name of the uploader to call.
+
+- options object Required
+
+  The options for the upload.
+
+  - files array\[File\] Required
+
+    An array containing the files to upload.
+
+  - input object
+
+    Optional `input` to pass along with the upload.
+
+  - user object
+
+    A `user` object returned from `test.accounts.signup()`.

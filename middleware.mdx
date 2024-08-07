@@ -1,0 +1,89 @@
+---
+title: "Middleware"
+---
+
+If you need to run custom middleware for all of your routes, the `middleware` option can be utilized on the options object passed to `joystick.app()`:
+
+```js
+    import joystick from '@joystick.js/node';
+    import some_middleware_package from 'some-middleware-package';
+
+    joystick.app({
+      middleware: [
+        (req = {}, res = {}, next = {}) => {
+          req._internal_request_id = joystick.id();
+          next();
+        },
+        some_middleware_package,
+      ],
+      routes: { ... }
+    });
+```
+
+Any Express-supported middleware will work (the contents of the `middleware` array are handed directly to Express when routes are registered). Above, we show an example of implementing a custom middleware that adds an `_internal_request_id` value to the inbound `req` object.
+
+Any middleware you add to the middleware array will run _ahead_ of any route matching the inbound request (the intended purpose of middleware is to run in the _middle_ of the user's request and your routes).
+
+## Built-in middleware
+
+In addition to any custom middleware you define, behind the scenes, Joystick implements a handful of built-in middleware functions. Where applicable, options can be passed via your [`settings.<env>.json`](settings/defining-settings) file.
+
+Currently, Joystick adds the following middleware functions:
+
+| Middleware Name | Docs                                                                   | Settings Path                 | Description                                                                                                                                                                               |
+| --------------- | ---------------------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| compression     | [View](https://www.npmjs.com/package/compression)                      | config.middleware.compression | Attempts to compress response bodies for all request that traverse through the middleware.                                                                                                |
+| serve-favicon   | [View](https://www.npmjs.com/package/serve-favicon)                    | N/A                           | Properly maps all requests for your favicon.ico file to avoid HTTP 404 errors.                                                                                                            |
+| cookie-parser   | [View](https://www.npmjs.com/package/cookie-parser)                    | N/A                           | Parses the HTTP \`cookie\` header into a JavaScript object and makes it accessible on the Express \`req\` object.                                                                         |
+| body-parser     | [View](https://expressjs.com/en/resources/middleware/body-parser.html) | config.middleware.bodyParser  | Parses the HTTP request \`body\` into the format specified in the \`application/content-type\` header. Note: version used is the one bundled with Express.js, not the standalone package. |
+| cors            | [View](https://www.npmjs.com/package/cors)                             | config.middleware.cors        | Aids in the configuration of the CORS (cross-origin resource sharing) policy for the server. This defines what URLs can access the server remotely and blocks unauthorized access.        |
+
+### Configuring built-in middleware
+
+Built-in middleware listed in the table above can be configured via your application's `settings.<env>.json` file at the root of your project (where `<env>` is replaced with the name of the environment those settings apply to).
+
+Where supported, built-in middleware can be configured via the `config.middleware` object in your settings file (see the "Settings Path" column in the table above for the correct name/path as well as which middleware are configurable):
+
+```json
+    {
+      "config": {
+        ...
+        "middleware": {
+          bodyParser: {
+            limit: '50mb',
+          },
+        },
+        ...
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+```
+
+For middleware that _are_ configurable, please refer to the documentation for that middleware for configuration options (Joystick just passes these along without modification).
+
+#### Custom Public Paths
+
+By default, Joystick exposes the `public` folder at the root of your projects at the `/` root route in your app (e.g., if a file like `/public/example.txt` exists, it will be accessible at `http://localhost:2699/example.txt`).
+
+If you'd like to support additional, custom public paths, these can be added via the `config.middleware.public_paths` field in your [settings.env.json](settings/defining-settings) file.
+
+```json
+    {
+      "config": {
+        ...
+        "middleware": {
+          "public_paths": [
+            { "route": "/example", "directory": "example" }
+          ]
+        },
+        ...
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+```
+
+In the example above, we expect a folder `example` at the root of your project who's contents will be accessible from the `/example` route in our app. For example, if we have a file like `example/photo.jpg`, we could access it via `http://localhost:2600/example/photo.jpg`.

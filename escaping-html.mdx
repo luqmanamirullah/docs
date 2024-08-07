@@ -1,0 +1,33 @@
+---
+title: "Escaping HTML"
+---
+
+
+While the recommended way to escape HTML is to use one of the [built-in output sanitization options in the API](node/app/api/sanitization), for convenience, `@joystick.js/node` offers a standalone named export of its HTML escaping function:
+
+```js
+    import joystick, { escape_html } from '@joystick.js/node';
+
+    const getters = {
+      input: {
+        name: {
+          type: 'string',
+          required: true,
+        },
+        description: {
+          type: 'string',
+          required: true,
+        },
+      },
+      get: (input = {}) => {
+        await process.databases.mongodb.collection('products').insertOne({
+          _id: joystick.id(),
+          name: escape_html(input?.title),
+          description: escape_html(input?.description),
+        });
+      },
+    };
+
+    export default getters;
+```
+The `escape_html()` method is helpful for pre-sanitizing user `input` before it hits your database. This avoids the need for implementing [output sanitization](node/app/api/sanitization) which can help to give a potential performance boost and avoid accidental rendering of unsanitized output.

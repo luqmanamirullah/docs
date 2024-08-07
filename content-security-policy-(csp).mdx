@@ -1,0 +1,73 @@
+---
+title: "Content Security Policy (CSP)"
+---
+
+To aid in the process of securing against Cross-Site Scripting Attacks (XSS), Joystick offers a thin abstraction around Content-Security Policy (CSP) making it easy to define and set directives for the `Content-Security-Policy` header (Joystick implements this as a middleware that applies to all requests). CSP is [a standard approach in browsers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy) for specifying which origins are allowed to load content on your site.
+
+In your app, CSP directives are defined via the `csp` object passed via the options object to `joystick.app()`:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      csp: {
+        directives: {
+          'font-src': ['fonts.gstatic.com'],
+          'style-src': ['fonts.googleapis.com'],
+        },
+      },
+    });
+    ```
+
+Above, we're adding two CSP directives—`font-src` and `style-src`—and assigning both an array containing strings for origins we want to allow to load those specific source types. Here, our example is for allowing the CDN-hosted version of Google Fonts on our page. If we were to omit these origins, assuming we were using a Google Fonts CDN link somewhere in our site, on page load the browser would block those URLs and our fonts would not work (only if the `csp` option is passed to our `joystick.app()` options—if not, the URLs would not be blocked).
+
+#### 'self' is included automatically
+
+By default, Joystick automatically adds `'self'` to the origins array for all directives (meaning, you're only responsible for specifying origins _outside_ of your app's current origin).
+
+## Unrestricted Origins
+
+When you add one or more Content Security Policy (CSP) directives, Joystick will automatically enable _all_ CSP directives available. By default, for all directives, the only origin specified is `'self'` (the current domain). Beyond this, you will need to specify which origins/domains are allowed to have their content loaded on the page.
+
+To avoid the tedium of doing so, for trusted domains (e.g., `google.com`), the `csp.unrestricted_origins` array can be utilized. Any domain/origin added to this array is automatically added to _all_ CSP directives for your app.
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      csp: {
+        unrestricted_origins: ['fonts.gstatic.com', 'fonts.googleapis.com'],
+        directives: {
+          ...
+        },
+      },
+    });
+```
+## API Reference
+
+### CSP Definition API
+
+CSP Definition API
+
+```js
+    {
+      csp: {
+        unrestricted_origins: array[string],
+        directives: object,
+      }
+    }
+    ```
+
+#### Properties
+
+- unrestricted_origins array\[string\]
+
+  An array of strings specifying origins (domains) that should _not_ have any of their URLs restricted by the Content Security Policy.
+
+- directives object
+
+  An object containing key/value pairs where the `key` is the name of a [Content Security Policy Directive](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#directives) and the value is an array of strings specifying origins that should be allowed for that type of URL.

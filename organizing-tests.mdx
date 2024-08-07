@@ -1,0 +1,44 @@
+---
+title: "Organizing Tests"
+---
+
+# Organizing Tests
+
+In step with Joystick's strictly enforced file structure, tests are only recognized in your app if they're located in the `/tests` folder at the root of your app.
+
+All test files must be named following the pattern `<test_file_name>.test.js`. Files that _do not_ include a `.test.js` suffix will be ignored by the test runner.
+
+## Tests folder structure
+
+While you don't _have to_, it's highly recommended that the contents of your `/tests` folder mirror the structure of the root of your project. So, tests related to a miscellaneous function in `/lib` should live at `/tests/lib`. Tests related to page components in your `/ui` folder should live at `/tests/ui/pages`.
+
+Consider the following file structure:
+
+    /api
+    -- /books
+    ---- getters.js
+    /lib
+    -- slugify_title.js
+    /ui
+    -- /pages
+    ---- /books
+    ------ index.js
+    
+
+The `/tests` folder for this app might look like:
+
+    /tests
+    -- /api
+    ---- /books
+    ------ getters.test.js
+    -- /lib
+    ---- /slugify_title.test.js
+    -- /ui
+    ---- /pages
+    ------ /books
+    -------- index.test.js
+    
+
+## Test file contents
+
+Each test file should only contain tests related to the mirrored path in the app. Each test file should be treated as a "suite" of tests (Joystick's testing paradigm does not offer an explicit `suite()` function or other means for organizing a suite of tests).

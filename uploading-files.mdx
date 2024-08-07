@@ -1,0 +1,114 @@
+---
+title: "Uploading Files"
+---
+
+# Uploading Files
+
+If you've [defined an uploader config on the server](node/app/uploaders/defining-an-uploader), you can upload files via the `upload()` method imported from `@joystick.js/ui` on your component.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick, { upload } from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      events: {
+        'submit form': (event = {}, instance = {}) => {
+          event.preventDefault();
+          upload('example_uploader', {
+            files: event.target.file.files,
+            input: {
+              additional_data: 'some arbitrary data to send with the upload',
+            },
+          }).then((response) => {
+            // Response contains URLs for uploaded files.
+          })
+        },
+      },
+      render: () => {
+        return `
+          <form>
+            <label>File</label>
+            <input type="file" name="file" />
+            <button type="submit">Upload File</button>
+          </form>
+        `;
+      },
+    })
+```
+To upload a file, above, we import the named export `upload` from `@joystick.js/ui` and then in the `submit` event handler for our `<form></form>`, we call to it, passing the name of the uploader on the server we want to call `example_uploader`, followed by an options object. On that object, we pass the `files` we want to upload as the raw `event.target.files.files` where `event.target.files` is our `[name="files"]` input and `.files` off of that is the raw files array from the browser.
+
+As an example, we also pass an `input` object with additional metadata to add context to our upload on the server.
+
+## Monitoring Progress
+
+Upload progress is automatically tracked by Joystick across all specified providers for your uploader. As progress is made, the `on_progress()` method we've added to our `upload()` options here is called, passing the current progress `percentage` and the name of the `provider` currently receiving the upload.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick, { upload } from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      state: {
+        upload_progress: 0,
+      },
+      events: {
+        'submit form': (event = {}, instance = {}) => {
+          event.preventDefault();
+          upload('example_uploader', {
+            files: event.target.files.files,
+            input: {
+              additional_data: 'some arbitrary data to send with the upload',
+            },
+            on_progress: (percentage = 0, provider = '') => {
+              instance.set_state({ upload_progress: percentage });
+            },
+          }).then((response) => {
+            // Response contains URLs for uploaded files.
+          })
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          ${when(state.upload_progress, `
+            <p>Uploading: ${state.upload_progress}%...</p>
+          `)}
+          <form>
+            <label>File</label>
+            <input type="file" name="file" />
+            <button type="submit">Upload File</button>
+          </form>
+        `;
+      },
+    })
+```
+## API Reference
+
+### upload()
+
+Function API
+
+    upload(uploader_name: string, uploader_options: object) => Promise;
+
+#### Arguments
+
+- uploader_name string
+
+  The name of the uploader as a `string` to target on the server.
+
+- uploader_options object
+
+  Options for the upload being performed.
+
+  - files array\[File\]
+
+    An `array` of `File` objects from the browser representing the files to upload.
+
+  - input object
+
+    An `object` of arbitrary key/value pairs to pass to the server alongside the files.
+
+  - on_progress function
+
+    A `function` that receives the current upload progress perecentage as an `integer` and the name of the provider currently receiving the upload as a `string`.

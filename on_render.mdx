@@ -1,0 +1,70 @@
+---
+title: "On_render"
+---
+
+# on_render
+
+Immediately after a component is rendered for mount (or re-rendered following an existing mount), if present, the `on_render()` method for the component will be called.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      lifecycle: {
+        on_render: (instance = {}) => {
+          // Handle the on_render() event.
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          <div>...</div>
+        `;
+      },
+    });
+
+    export default Index;
+```
+## Use caution with state
+
+It's important to avoid calling `set_state()` inside of `on_render()` to copy props or other values over to state as it can cause unwanted rendering bugs. Instead, set your default `state` value to a function and map the props from the `instance` passed to that function over to state.
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      state: (instance = {}) => {
+        return {
+          some_value: instance?.props?.some_value,
+        };
+      },
+      lifecycle: {
+        on_render: (instance = {}) => {
+          // Handle the on_render() event.
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          <div>...</div>
+        `;
+      },
+    });
+
+    export default Index;
+```
+## API Reference
+
+### on_render()
+
+#### Function API
+
+Function API
+
+    on_render(component_instance: object) => void;
+
+#### Arguments
+
+- component_instance boolean
+
+  The current component instance as an `object`.

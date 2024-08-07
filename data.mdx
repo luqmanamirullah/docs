@@ -1,0 +1,165 @@
+---
+title: "Data"
+---
+
+# Data
+
+When server-side rendering your component, Joystick can automatically fetch data from your [API](node/app/api/getters), or, from a third-party data source. Additionally, on the client, data can be _refetched_ to render any data updated after the page load.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      data: async (api = {}, req = {}, input = {}, instance = {}) => {
+        return {
+          books: await api.get('books', {
+            input: {
+              category: req?.params?.category,
+            },
+          })
+        };
+      },
+      render: ({ data, each }) => {
+        return `
+          <div>
+            <h2>Books</h2>
+            <ul>
+              ${each(data?.books, (book = {}) => {
+                return `<li><a href="/books/${book.id}">${book.title}</a> by ${book.author}</li>`;
+              })}
+            </ul>
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+```
+Above, we define `data` as a `function` on our component options. That function takes four possible arguments: `api`, `req`, `input`, and `instance`.
+
+#### Async/await usage
+
+Notice that above, we're using the `async` prefix on the function we're passing to `data`. This allows us to `await` the Promise that we anticipate being returned from each of the methods defined on `api`.
+
+Inside, we return an object with properties containing the data we fetched. While we _can_ just return whatever data we fetch directly (i.e., you could skip returning an `object` with `books` defined on it and just return the call to `api.get('books')` directly), it's recommended to organize the data returned so it's easier to identify when referenced elsewhere in your component.
+
+For the `books` property on that returned `object`, we return a call to a getter in our API `books` which is called via the `.get()` method on the `api` object automatically passed to us by Joystick. This same exact approach can be applied to the other methods defined on `api`: `fetch()` and `set()`.
+
+Focusing on the `input` value passed on the options `object` passed to `api.get()` above, here, we reference the `req` value passed as the second argument. Assuming we were rendering a component that was purposed as a page at a route like `/books/:category`, we'd access that `:category` param here via `req.params.category`.
+
+### Refetching Data
+
+Once a component is rendered on screen, if you need to update its data, you can call the `instance.data.refetch()` method. The `data.refetch()` method can receive an object of `input` which is relayed to the `input` argument we see defined above on the `data` function. This is helpful for handling things like pagination where you need to relay the current page number to the getter being called.
+
+/ui/pages/index/index.js
+
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      data: async (api = {}, req = {}, input = {}, instance = {}) => {
+        return {
+          books: await api.get('books', {
+            input: {
+              category: req?.params?.category,
+              page: input?.page,
+            },
+          })
+        };
+      },
+      events: {
+        'click [data-page]': (event = {}, instance = {}) => {
+          instance.data.refetch({
+            page: parseInt(event.target.getAttribute('data-page'), 10),
+          });
+        },
+      },
+      render: ({ data, each }) => {
+        return `
+          <div>
+            <h2>Books</h2>
+            <ul>
+              ${each(data?.books, (book = {}) => {
+                return `<li><a href="/books/${book.id}">${book.title}</a> by ${book.author}</li>`;
+              })}
+            </ul>
+            <div class="pagination">
+              <ol>
+                <li data-page="1">1</li>
+                <li data-page="2">2</li>
+                <li data-page="3">3</li>
+              </ol>
+            </div>
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+```
+From anywhere on our component, via the `instance.data.refetch()` method, we can refetch the data we've defined via the `data()` method in our component options. Here, we've added an example of using `instance.data.refetch()` to retrieve an additional page of results.
+
+To do it, we listen for a DOM click event on any element with the attribute `data-page`. When it's clicked we get the value of that attribute and call to `instance.data.refetch()`, passing that value on the `input` object that gets handed off to our `data` function.
+
+## API Reference
+
+### data()
+
+#### Function API
+
+Function API
+
+    data(api: object, req: object, input: object, component_instance: object) => object;
+
+#### Arguments
+
+- api object Required
+
+  An `object` containing methods for interacting with your app's API, or, a third-party data source.
+
+  - fetch function
+
+    A "server safe" copy of the `fetch()` API that can be used to perform HTTP requests to a third-party data source.
+
+  - get function
+
+    A "server safe" copy of the Joystick `get()` method that can be used to call a [getter](node/app/api/getters) endpoint in your app's API.
+
+  - set function
+
+    A "server safe" copy of the Joystick `set()` method that can be used to call a [setter](node/app/api/setters) endpoint in your app's API.
+
+- req object
+
+  An `object` containing a sanitized copy of the inbound HTTP request received when rendering the component.
+
+  - headers object
+
+    An `object` containing the HTTP headers for the inbound HTTP request received when rendering the component.
+
+  - params object
+
+    An `object` containing the route parameters for the inbound HTTP request received when rendering the component.
+
+  - query object
+
+    An `object` containing the route query parameters for the inbound HTTP request received when rendering the component.
+
+  - context object
+
+    An `object` containing the route context for the inbound HTTP request received when rendering the component.
+
+    - user object
+
+      An `object` containing a browser-safe copy of the logged-in user, if available.
+
+- input object
+
+  An optional `object` containing input variables passed when the component's `data.refetch()` method is called.
+
+- component_instance object
+
+  The current component instance as an `object`.

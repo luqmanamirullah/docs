@@ -1,0 +1,178 @@
+---
+title: "Global State"
+---
+
+# Global State
+
+Under the hood, `@joystick.js/ui` includes a global state library called Cache. Similar to popular libraries like Redux, Cache allows you to create a "store" or "cache" for storing global data. It features a simple API for getting, setting, and unsetting data from a cache as well as listening for changes to a cache.
+
+By default, Joystick initializes a cache for you and makes it accessible as a named export at `global_state` (and an alias on the default `joystick` export at `joystick.global_state`).
+
+/ui/pages/store/index.js
+
+    import joystick, { global_state } from "@joystick.js/ui-canary";
+    import Cart from '../../components/cart/index.js';
+
+    const Store = joystick.component({
+      events: {
+        'click [data-item-id]': (event = {}, instance = {}) => {
+          global_state.set((state = {}) => {
+            return {
+              ...state,
+              cart: [
+                ...state.cart || [],
+                { id: event.target.getAttribute('data-item-id'), }
+              ],
+            };
+          });
+        },
+      },
+      render: ({ data, component, i18n }) => {
+        return `
+          <div>
+            <div class="store">
+              <button data-item-id="book">Add a Book to Cart</button>
+              <button data-item-id="t-shirt">Add a T-Shirt to Cart</button>
+              <button data-item-id="apple">Add an Apple to Cart</button>
+            </div>
+            ${component(Cart)}
+          </div>
+        `;
+      },
+    });
+
+    export default Store;
+
+Above, we've imported the named export `global_store` from `@joystick.js/ui`. Down in our `render()` function, we've set up a mock "store" with three items as `<button></button>` tags. Up in our `events`, we listen for a `click` event on each button. When there's a click, we call to `global_state.set()` passing a function that will be responsible for "compiling" the updated version of our global state.
+
+From it, we `return` an object representing the new global state. First, we copy the current value of `state` (if one is present) and then we set the value of `cart` to an array containing two things:
+
+1.  If present, the existing value of `state.cart` on global state.
+2.  An object representing the item we're adding to the cart (specified by its `data-item-id` attribute\`.
+
+This will get items added to our global state. Next, let's wire up the `Cart` component we're rendering above.
+
+/ui/components/cart/index.js
+
+    import joystick, { global_state } from '@joystick.js/ui-canary';
+
+    const Cart = joystick.component({
+      state: {
+        cart: [],
+      },
+      lifecycle: {
+        on_mount: (instance = {}) => {
+          global_state.on('change', (state = {}, event = '', user_event_label = '') => {
+            instance.set_state({ cart: state?.cart });
+          });
+        }
+      },
+      events: {
+        'click button': (event = {}, instance = {}) => {
+          global_state.set((state = {}) => {
+            return {
+              ...state,
+              cart: [
+                ...state.cart || [],
+                { id: event.target.getAttribute('data-item-id'), }
+              ],
+            };
+          });
+        },
+      },
+      render: ({ state, each, when }) => {
+        return `
+          <div>
+            <div class="items">
+              ${when(state?.cart?.length === 0, `
+                <p>No items in cart</p>
+              `)}
+              ${when(state?.cart?.length > 0, `
+                <ul>
+                  ${each(state?.cart, (item) => {
+                    return `<li>${item.id} <button>X</button></li>`;
+                  })}
+                </ul>
+              `)}
+            </div>
+          </div>
+        `;
+      },
+    });
+
+    export default Cart;
+
+Again, importing `global_state` from `@joystick.js/ui`, in this component, we add a `change` event listener to our `global_state` via the `.on()` method.
+
+The `.on()` method takes two arguments: an `event` to listen for and a `callback` to call when that event occurs. Here, we just want to be notified of a `change` to the global state and copy the `state.cart` value over to the local or _component_ state so that we can render our cart's items.
+
+## API Reference
+
+Object API
+
+    global_state: {
+      get: (path: string) => object,
+      on: (
+        event_type: 'string',
+        callback: (existing_state: object, event: string, type_of_change: string) => void
+      ) => void,
+      set: (
+        callback: (existing_state: object) => object,
+        user_event_label: string
+      ) => void,
+      unset: (path: string, user_event_label: string) => event,
+    }
+
+#### Parameters
+
+- get function
+
+  A `function` for retrieving the current global state value. Can optionally receive a `path` to retrieve from the global state value (e.g., `cart`). If a value is nested, dot notation can be used (e.g., `my.nested.value`) to access it directly.
+
+- on function
+
+  A `function` for handling global store events. Takes an `event_type` (`set`, `unset`, or `change`) and a `callback` function to call when the event is received.
+
+  - event_type string Required
+
+    A `string` describing the event type to listen for (one of: `set`, `unset`, or `change`).
+
+  - callback function Required
+
+    A `function` called when the specified `event_type` occurs. Receives:
+
+    - existing_state object
+
+      An `object` representing the current global state value.
+
+    - event string
+
+      A `string` describing the event that occured (one of: `set`, `unset`, or `change`).
+
+    - user_event_label string
+
+      If passed, a `string` containing the user-specified event label (e.g., `ADD_TO_CART` or `EMPTY_CART`).
+
+- set function
+
+  A `function` for setting the global state value. Receives a callback function that's expected to return an `object` representing the updated state.
+
+  - callback function Required
+
+    A `function` receiving the current global state value. Should return an `object` representing the updated state.
+
+  - user_event_label string
+
+    A `string` specifying the relevancy of the set event (e.g., `ADD_TO_CART`).
+
+- unset function
+
+  A `function` for unsetting the global state value. Can receive an optional `path` as a `string` to remove from the global state value. If no `path` is provided, the entire global state value is unset.
+
+  - path string
+
+    A `string` specifying a path to remove on the global state. Can use dot notation to unset a nested value (e.g., `nested.value.to.unset`).
+
+  - user_event_label string
+
+    A `string` specifying the relevancy of the unset event (e.g., `EMPTY_CART`).

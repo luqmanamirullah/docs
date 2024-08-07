@@ -1,0 +1,77 @@
+---
+title: "Defining A Component"
+---
+
+# Defining a Component
+
+How to define a basic Joystick component.
+
+Instead of relying on third-party UI libraries like React, Joystick implements its own beginner-friendly, standards-based approach to defining components using HTML, CSS, and JavaScript.
+
+While Joystick components can serve multiple purposes in your app (e.g., they can be used to define your user-facing UI in the browser or an email template on the server), there is only a single way to define them. The API for components is also designed to be fixed long-term, so you don't have to worry about a massive refactor looming in the future (having been burnt by this with other frameworks, Joystick's author is tyrannical about this remaining true).
+
+Per Joystick's [strictly enforced file structure](getting-started/file-structure), all UI components are stored in the `/ui` folder at the root of your project. That folder contains three sub-folders:
+
+- `/layouts` - Contains Joystick components whose purpose is to serve as a layout, rendering other Joystick components as pages and static elements like a navigation or footer.
+- `/pages` - Contains Joystick components whose purpose is to serve as a page in your app like a signup page, statistics dashboard, or user profile.
+- `/components` - Contains generic Joystick components whose purpose is to be composed into page components and layouts (e.g., a button, form input, or video player).
+
+## Rendering HTML
+
+As an example, let's create an index page for our app at `/ui/pages/index/index.js` replacing the existing contents with the following code:
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      render: () => {
+        return `<p>A killer new app!</p>`;
+      },
+    });
+
+    export default Index;
+
+Above, we define a Joystick component by importing the `joystick` default export from `@joystick.js/ui`, calling its `joystick.component()` method. We store the return value of that method into a variable `Index` and then assign it as the default export from our file with `export default Index` (for consistency, this is enforced by Joystick's build system).
+
+To specify the behavior of a Joystick component, we pass an object of options. Here, we've set the only required option `render` to an arrow function returning a string literal containing some HTML.
+
+#### Why use a string literal?
+
+Two reasons: they allow us to write multi-line strings of HTML and embed variables and function calls directly into the HTML we're rendering. This helps us to create non-trivial components without having to rely on proprietary technology (i.e., "it's just JavaScript") that may or may not be supported later.
+
+## Styling HTML with CSS
+
+To style our HTML, CSS is defined directly on our component. We have three options for defining CSS on a component: as a string, as a function (where we receive the component instance as an argument), and using an [object for automating media queries](ui/components/css#defining-css-as-an-object).
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      css: `
+        p {
+          font-size: 48px;
+          color: rebeccapurple;
+        }
+      `,
+      render: () => {
+        return `<p>A killer new app!</p>`;
+      },
+    });
+
+    export default Index;
+
+Above, we use the simplest option of defining CSS as a string. When our component is rendered, Joystick will automatically scope the CSS we've written here to our component and its instance. When writing CSS (using any of the three forms), we always use a string literal (backticks) to enable multi-line strings.
+
+[](getting-started-tutorial/defining-a-route)
+
+#### Previous
+
+Defining a Route
+
+[](getting-started-tutorial/rendering-a-component)
+
+#### Next
+
+Rendering a Component

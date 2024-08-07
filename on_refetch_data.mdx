@@ -1,0 +1,72 @@
+---
+title: "On_refetch_data"
+---
+
+# on_refetch_data
+
+Immediately after a data is refetched for a component, if present, the `on_refetch_data()` method for the component will be called.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      lifecycle: {
+        on_refetch_data: (instance = {}) => {
+          // Handle the on_refetch_data() event.
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          <div>...</div>
+        `;
+      },
+    });
+
+    export default Index;
+```
+Keep in mind, if any component in the tree (a parent or child) refetches it's data, the `on_refetch_data()` method will be called for _all_ components in the tree.
+
+## Use caution with state
+
+It's important to avoid calling `set_state()` inside of `on_refetch_data()` to copy data or other values over to state as it can cause unwanted rendering bugs. Instead, set your default `state` value to a function and map the data from the `instance` passed to that function over to state.
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      state: (instance = {}) => {
+        return {
+          some_value: instance?.data?.some_value,
+        };
+      },
+      lifecycle: {
+        on_refetch_data: (instance = {}) => {
+          // Handle the on_refetch_data() event.
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          <div>...</div>
+        `;
+      },
+    });
+
+    export default Index;
+```
+## API Reference
+
+### on_refetch_data()
+
+#### Function API
+
+Function API
+
+    on_refetch_data(component_instance: object) => void;
+
+#### Arguments
+
+- component_instance boolean
+
+  The current component instance as an `object`.

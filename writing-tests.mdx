@@ -1,0 +1,75 @@
+---
+title: "Writing Tests"
+---
+
+# Writing Tests
+
+Writing tests for your Joystick app starts and ends with the `@joystick.js/test` package (installed for you when running `joystick create <app_name>`), and more specifically, the `test.that()` method on the default export from that package.
+
+Behind the scenes, Joystick relies on the [Ava](https://github.com/avajs/ava) test runner. The `@joystick.js/test` package adds some helpful utilities around that library designed specifically for testing a Joystick app.
+
+To showcase an example of writing a test, assume we have a generic function in our `/lib` folder called `add()` that adds two numbers together:
+
+/lib/add.js
+```js
+    const add = (n1 = 0, n2 = 0) => {
+      return n1 + n2;
+    };
+
+    export default add;
+    ```
+
+To write a test for this function, we'd create a file in our `/tests` directory at `/tests/lib/add.test.js`:
+
+/tests/lib/add.test.js
+
+```js
+    import test from '@joystick.js/test';
+
+    test.that('add function adds two numbers together', async (assert = {}) => {
+      const add = await test.load('lib/add.js', { default: true });
+      assert.is(add(5, 5), 10);
+    });
+```
+Above, we import the `test` default export from `@joystick.js/test`. That export is an `object` containing various methods for writing your tests.
+
+Here, we use the `test.that()` function to write an individual test. `test.that()` takes a string describing the test being performed as the first argument and a callback function to perform the test. That callback function receives an object `assert` which contains [various assertion methods](https://github.com/avajs/ava/blob/main/docs/03-assertions.md) for verifying the result of our test.
+
+Inside of the test function, we utilize the `test.load()` method from `@joystick.js/test` which helps us to dynamically import code from our app. We give it a path relative to the root of our project as the first argument and as the second, an options object with `default` set to `true`, telling `.load()` to hand us the default export from the file at that path.
+
+What we expect to get in return is the `add()` function we defined in that file. To test it, we call to `assert.is()` passing a call to the function `add(5, 5)` to add two numbers together. As the second argument to `assert.is()` we pass the expected result `10`.
+
+When we run this test in our cli with `joystick test`, we'd expect to get back a passing test. If we were to modify the above example to the following, we'd expect to get back a _failing_ test:
+
+/tests/lib/add.test.js
+
+```js
+    import test from '@joystick.js/test';
+
+    test.that('add function adds two numbers together', (assert = {}) => {
+      const add = await test.load('lib/add.js', { default: true });
+      assert.is(add(5, 3), 10);
+    });
+
+    ```
+This is the core of writing a test for a Joystick app. While there are several other helper methods for testing specific functionality, this is all you need to know to get your hands dirty.
+
+## API Reference
+
+### test.that()
+
+#### Function API
+
+Function API
+
+    test.that(test_description: string, callback) => void;
+
+#### Arguments
+
+- test_description string Required
+
+  A string describing what the test is testing (e.g., the alert fires when the button is clicked).
+
+- callback function Required
+
+  The function called to execute the test. Can optionally be \`async\` if any of the code inside the callback returns a Promise that requires an \`await\`. Function receives a single argument \`assert\` as an object which contains [the assert methods available in Ava](https://github.com/avajs/ava/blob/main/docs/03-assertions.md#built-in-assertions) (the library that Joystick uses to run tests).

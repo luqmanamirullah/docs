@@ -1,0 +1,52 @@
+---
+title: "Wrapper"
+---
+
+# Wrapper
+
+By default, when Joystick renders a component, it takes the contents of its `render()` function and renders them into a `<div></div>` tag with a `js-c` and `js-i` attribute (where `js-c` is the component ID and `js-i` is the component's instance ID). This is done to give Joystick a target for scoping things like CSS and events as well as handling DOM selection for mapping relationships between child components and their parents.
+
+If you'd like to change the wrapper element or apply classes to a wrapper, you can do so via the `wrapper` option passed to your component's options object:
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const books = [
+      { id: 1, title: 'Awareness', author: 'Anthony DeMello' },
+      { id: 2, title: 'Seeking Wisdom', author: 'Peter Bevelin' },
+      { id: 3, title: 'The Courage to Be Disliked', author: 'Ichiro Kishimi' }
+    ];
+
+    const BooksList = joystick.component({
+      wrapper: {
+        tag_name: 'ul',
+        class_list: ['books-list'],
+      },
+      render: ({ each }) => {
+        return `
+          ${each(books, (book = {}) => {
+            return `<li><a href="${book?.id}">${book.title}</a> by ${book.author}</li>`;
+          })}
+        `;
+      },
+    });
+
+    export default BooksList;
+
+This allows us to create simple, specific components without littering our DOM with unnecessary `<div></div>` tags while retaining Joystick's core behavior. Above, we've swapped the default `div` tag with a `ul` and added an additional CSS class `books-list`. When this renders in the browser, we can expect some HTML like this:
+
+    <ul class="books-list" js-c="abcdefg1234567" js-i"a1b2c3d4">
+      <li><a href="1">Awareness</a> by Anthony DeMello</li>
+      <li><a href="2">Seeking Wisdom</a> by Peter Bevelin</li>
+      <li><a href="3">The Courage to Be Disliked</a> by Ichiro Kishimi</li>
+    </ul>
+
+## API Reference
+
+Wrapper API
+
+    wrapper: {
+      tag_name: string; // Alias tagName
+      class_list: [string]; // Alias classList
+    };

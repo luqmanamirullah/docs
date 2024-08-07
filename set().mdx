@@ -1,0 +1,73 @@
+---
+title: "Set()"
+---
+
+
+To call a setter from your API directly, the `set()` method can be called from within your component.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick, { set } from '@joystick.js/ui';
+
+    const Book = joystick.component({
+      events: {
+        'click .fa-star': (event = {}, instance = {}) => {
+          get('favorite_author', {
+            input: {
+              author_id: event?.target?.closest('.author-name')?.getAttribute('data-author-id'),
+            }
+          }).then((author) => {
+            location.reload();
+          });
+        },
+      },
+      render: ({ props }) => {
+        return `
+          <div>
+            <header>
+              <h1>${props?.book?.title}</h1>
+              <h5 data-author-id="${props?.book?.author?._id}" class="author-name">${props?.book?.author?.name} <i class="fas fa-star"></i></h5>
+            </header>
+          </div>
+        `;
+      },
+    });
+    export default Book;
+```
+
+In the example above, we're defining a component where we want to call a setter `favorite_author` when the star icon next to their name is clicked. To do it, we define a `click` event listener on the `.fa-star` selector. Inside of the event handler for that listener, we make a call to the `set()` method we're importing from `@joystick.js/ui` as a named export.
+
+In response to that call, if successful, we want to reload the page which will retrieve the updated data from the database denoting that our "favorite" was succesful.
+
+## API Reference
+
+### set()
+
+#### Function API
+
+Function API
+
+    set(setter_name: string, options: object) => Promise;
+
+#### Arguments
+
+- setter_name string
+
+  The name of a setter as a `string` to call in your API.
+
+- options object
+
+  The options for the setter request.
+
+  - skip boolean
+
+    A `boolean` value that decides if/when a setter request should be skipped.
+
+  - input object
+
+    The input values for the setter request as an `object`.
+
+  - output array\[string\]
+
+    An `array` of `string`s describing which fields to return as output from the setter response. Can use dot notation `like.this` to selectively return nested object fields in the response value.

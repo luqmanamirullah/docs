@@ -1,0 +1,69 @@
+---
+title: "Testing Websockets"
+---
+
+# Testing Websockets
+
+While their utility is limited due to the nature of WebSockets, tests can be authored to verify websocket connections endpoints exist and are working as expected via the `test.websockets.connect()` method from `@joystick.js/test`:
+
+/tests/websockets/chat_messages.js
+
+```js
+    import test from '@joystick.js/test';
+
+    test.that('the webscket message is sent and received on the server', async (assert = {}) => {
+      const connection = await test.websockets.connect('chat_messages');
+
+      connection.send({
+        message: 'Hey, did you get the Q3 report I sent?'
+      });
+
+      connection.close();
+
+      const function_calls = await test.utils.get_function_calls('node.websockets.chat_messages.on_message');
+
+      assert.like(function_calls[0]?.args[0], {
+        message: 'Hey, did you get the Q3 report I sent?'
+      });
+    });
+```
+Above, using the `test.websockets.connect()` method, we establish a connection to a hypothetical `chat_messages` websocket endpoint. Next, we call the `connection.send()` method to send a payload containing a `message` we want to relay via WebSockets.
+
+After our message is sent, we make sure to close the connection with `connection.close()` (important as open connections can cause the test runner to hang unexpectedly and time out).
+
+Finally, to assert our message made it to the server, we call to `test.utils.get_function_calls()`, retrieving the value of `node.websockets.chat_messages.on_message` which is an array containing all calls to our `chat_message` WebSocket server's `on_message()` method.
+
+To assert our test works, we check that the function calls to `on_message()` contains a message like the one we sent above.
+
+## API Reference
+
+### test.websockets.connect()
+
+#### Function API
+
+Function API
+
+    test.websockets.connect(server_name: string) => Promise;
+
+#### Arguments
+
+- server_name string Required
+
+  The name of the WebSocket server to connect to.
+
+#### Returns
+
+```js
+    {
+      send: function,
+      close: function,
+    }
+
+    ```
+- send function
+
+  A function receiving an `object` containing the `message` to send to the WebSocket server.
+
+- close function
+
+  A function to close the open WebSocket connection.

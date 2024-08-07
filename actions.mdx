@@ -1,0 +1,256 @@
+---
+title: "Actions"
+---
+
+
+Actions are a unique feature of Joystick, designed to help you organize complex, multi-step code into a single, fault-tolerant function. For example, when a new user signs up for your app, the "action" being taken might be called `signup()` which consists of a few discrete "steps:"
+
+1.  Create a user account.
+2.  Create a customer account in your payment system.
+3.  Seed the database with some example data.
+4.  Fire off a welcome email.
+5.  Track the signup in your analytics.
+
+While we can certainly write code that runs each of these steps independently, it can be helpful to call them together, with the end result of all of the steps being completed successfully being identified as a successful "signup."
+
+Conversely, if any of those steps fail, we can say that the "signup" failed. We may have gotten a user account and some seed data, but the payments API was down and so now there's no payment data connected to the user.
+
+When this happens, ideally, we can treat the entire action as a failure and alert the user, suggesting they try again.
+
+This is where Joystick's built-in `action` library comes in to play.
+
+## How an action works
+
+An action works by creating a function composed of multiple steps that can be called together. Inside of the action, steps can reference each other's inputs and outputs, streamlining the process of completing some "action." This is helpful not only for maintenance purposes and system stability, but also for things like testing your app.
+
+In addition to being able to call steps together in sequence, an action can also include input validation (to confirm all of the data you need to complete the action is present with the correct data types) as well as the option to "abort" the action if any one of the steps fails.
+
+Consider the following example action `signup()`:
+
+/api/signup.js
+
+```js
+    import joystick, { accounts, email, origin } from "@joystick.js/node";
+    import Stripe from 'stripe';
+    import analytics from 'analytics-provider';
+    import seed_new_user_data from '../lib/seed_new_user_data.js';
+    
+    const stripe = Stripe(joystick?.settings?.private?.stripe?.secret_key);
+    
+    const signup = joystick.action(
+      "signup",
+      {
+        input: {
+          email_address: {
+            type: 'string',
+            required: true,
+          },
+          password: {
+            type: 'string',
+            required: true,
+          },
+          name: {
+            type: 'string',
+            required: true,
+          },
+        },
+        steps: {
+          create_user: {
+            run: (email_address = '', password = '', name = '') => {
+              return accounts.signup({
+                email_address,
+                password,
+                metadata: {
+                  name,
+                }
+              });
+            },
+            on_error: (exception, action) => {
+              action.abort(exception.message);
+            },
+          },
+          create_customer_on_stripe: {
+            run: (name = '', email_address = '', user_id = '') => {
+              return stripe.customers.create({
+                name,
+                email_address,
+                metadata: {
+                  user_id,
+                }
+              });
+            },
+            on_error: (exception, action) => {
+              action.abort(exception.message);
+            },
+          },
+          add_customer_to_user: {
+            run: (user_id = '', stripe_customer_id = '') => {
+              return process.databases.mongodb.collection('users').updateOne(
+                { _id: user_id },
+                {
+                  $set: {
+                    stripe_customer_id,
+                  },
+                }
+              );
+            },
+            on_error: (exception, action) => {
+              action.abort(exception.message);
+            },
+          },
+          seed_example_data: {
+            run: (user_id = '') => {
+              seed_new_user_data(user_id);
+            },
+            on_error: (exception, action) => {
+              action.abort(exception.message);
+            },
+          },
+          send_welcome_email: {
+            run: (email_address = '', name = '') => {
+              return email.send({
+                to: email_address,
+                from: 'customers@app.com',
+                subject: 'Welcome!',
+                template: 'welcome',
+                props: {
+                  name,
+                  onboarding_url: `${origin}/setup`,
+                },
+              });
+            },
+          },
+          track_signup: {
+            run: (user_id = '') => {
+              return analytics.track({ event: 'signup', user_id });
+            },
+          },
+        },
+        run: async (input = {}, steps = {}, action = {}) => {
+          const user = await steps.create_user(input?.email_address, input?.password, input?.name);
+          const customer_on_stripe = await steps.create_customer_on_stripe(input?.name, input?.email_address);
+    
+          await steps.add_customer_to_user(user?._id, customer_on_stripe?.id);
+          await steps.seed_example_data(user?._id);
+          await steps.send_welcome_email(input?.email_address, input?.name);
+    
+          return user?._id;
+        },
+      },
+      {
+        log_errors: true,
+      }
+    );
+    
+    export default signup;
+   ``` 
+
+Above, using the example we hinted at earlier, we've created an action using the `action()` method imported from `@joystick.js/node` to help us sign up a new user. If we look close, there are a few distinct areas to an action:
+
+*   `input` which helps us define a schema to [validate the input](node/app/api/validating-input) to our action.
+*   `steps` which define the individual steps that make up our action.
+*   `run` the main function that calls our steps in sequence.
+
+When an action is called (more on this below), internally, the `run()` function is called for us. To that function, we get the `input` from the user (assuming it passed validation), access to the `steps` functions for our action, and access to the `action` instance itself.
+
+Inside of `run()` we call each step we've defined in our preferred sequence. Notice that as we call each step, we can "hand off" data from previous steps to the next step without losing context.
+
+If we look at each step, there are 1-3 fields for each step:
+
+*   `run` the function representing the step which receives any inputs we pass it arguments.
+*   `on_error` an optional function that the action call if a step throws an error when it's called.
+*   `on_sucess` though not present in the example above, an optional function that the action call after a step runs without error.
+
+Of note, if we look at the steps that have an `on_error()` function defined, they receive the `exception` that occurred at run time and the `action` instance. On that `action` instance, we get access to an `abort()` method. Like the name implies, this allows us to "short circuit" the entire action run if and when this step fails (i.e., if one step fails with an `abort()` call defined, all remaining steps will be skipped and an error will be thrown back to the action's invocation).
+
+What's great about this is that we've encapsulated a relatively complex process into a single function, given it an easy to understand and maintain structure, and made it fault tolerant to avoid creating bad data (or side effects) in our app.
+
+## Calling an action
+
+If we look above, we've exported the return value of calling `action()` above. What we expect to get in return is a function that we can call, passing the expected input (relative to the `input` schema we defined on the action):
+
+/api/users/setters.js
+
+```js
+    import joystick from '@joystick.js/node';
+    import signup from '../signup.js';
+    
+    const setters = {
+      create_user: {
+        input: {
+          email_address: {
+            type: 'string',
+            required: true,
+          },
+          password: {
+            type: 'string',
+            required: true,
+          },
+          name: {
+            type: 'string',
+            required: true,
+          },
+        },
+      },
+      set: (input = {}) => {
+        return signup(input);
+      },
+    };
+    
+    export default setters;
+```    
+
+To call our action, all we have to do is import it from the file we exported it from and call it. Here, we've written a mock [setter](node/app/api/setters) that can be called from the client to trigger our action and kick off the sign up process.
+
+That's it. Now, when our `create_user` setter is called, it will hand-off the `input` from the client to our `signup()` action and the action will take care of the rest. If anything goes wrong, any errors will bubble back up to our setter and subsequently, back to the client.
+
+## API Reference
+
+### action()
+
+#### Function API
+
+Function API
+
+    action(action_name: string, action_definition: object, action_options: object) => function;
+    
+
+#### Arguments
+
+*   action\_name string Required
+    
+    The name for the action. Used internally by the action when reporting errors.
+    
+*   action\_definition object Required
+    
+    The definition for the action.
+    
+    *   input object
+        
+        An object defining an [input validation](node/app/api/validating-input) schema to validate the input before calling the action's `run()` function.
+        
+    *   steps object Required
+        
+        An object containing individual steps as objects with a `run()` function and `on_error()` and `on_success()` methods.
+        
+        *   on\_error (alias: onError) function
+            
+            A function that can be called if the step fails. Receives the raw error object as the first argument and the action instance as the second argument.
+            
+        *   on\_success (alias: onSuccess) function
+            
+            A function that can be called if the step succeeds. Receives the return value from the step as the first argument and the action instance as the second argument.
+            
+        
+    *   run function Required
+        
+        The main function for the action that calls steps in sequence. Receives the \`input\` as the first argument, the action \`steps\` as the second argument, and the \`action\` instance as a third argument.
+        
+    
+*   action\_options object
+    
+    Additional options to configure the behavior of the action.
+    
+    *   log\_errors (alias: logErrors) boolean
+        
+        Set whether or not the action should log errors to the server console (default: `false`).

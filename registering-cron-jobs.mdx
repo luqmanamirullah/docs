@@ -1,0 +1,19 @@
+---
+title: "Registering Cron Jobs"
+---
+
+In order to register cron jobs, they need to be passed via the options you pass to `joystick.app()`:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+    import cron_jobs from './cron_jobs/index.js';
+
+    joystick.app({
+      cron_jobs,
+      routes: { ... }
+    });
+```
+
+Above, we've imported an assumed file containing all of our cron jobs from `/cron_jobs/index.js`. We expect that file to have a default export of [an object containing all of our cron job definitions](defining-a-cron-job).

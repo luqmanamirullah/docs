@@ -1,0 +1,43 @@
+---
+title: "Defining A Cron Job"
+---
+
+To run recurring tasks in your app, cron jobs can be defined as part of the `joystick.app()` startup process. Cron jobs should live in the `/cron_jobs` folder (alias: `cronJobs`) at the root of your app.
+
+If your app requires a significant number of cron jobs, it's recommended to split them into individual files and then import them into a `/cron_jobs/index.js` file and combine them together using a JavaScript spread `...`.
+
+/cron_jobs/index.js
+
+```js
+    import fetch from 'node-fetch';
+    import fs from 'fs';
+
+    const EVERY_TWELVE_HOURS = '0 */12 * * *';
+    const { writeFile } = fs.promises;
+
+    const cron_jobs = {
+      update_usd_to_eur_exchange_rate: {
+        log_at_run_time: 'Updating USD -> EUR exchange rate...',
+        schedule: EVERY_TWELVE_HOURS,
+        run: async () => {
+          const usd_to_eur_rate = await fetch('https://exchange-rates.imaginary-api.com?from=usd&to=eur).then((response) => {
+            return response.json();
+          });
+
+          await writeFile('lib/exchange_rates/usd_to_eur.json', JSON.stringify(usd_to_eur_rate));
+        },
+      },
+    };
+
+    export default cron_jobs;
+```
+
+A cron job is defined as a key/value pair on an object where the `key` name is the name of the cron job and the `value` is an object defining the cron job.
+
+Above, we've defined a cron job `update_usd_to_eur_exchange_rate` with three options:
+
+1.  `log_at_run_time` a `string` we want to log to our server logs every time the cron job runs.
+2.  `schedule` [a crontab `string`](https://crontab.guru/examples.html) defining the schedule for the cron job.
+3.  `run` a `function` that's called for each "tick" or run of the cron job.
+
+In order for a cron job to run, it must be [registered via the options you pass to `joystick.app()`](registering-cron-jobs).

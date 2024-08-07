@@ -1,0 +1,135 @@
+---
+title: "Websockets"
+---
+
+# Websockets
+
+If you've [defined a websocket server](node/app/websockets/defining-a-server) via your `joystick.app()` instance on the server, you can connect to it via your component by utilizing the `websockets` property on your component options.
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      websockets: (instance = {}) => {
+        return {
+          example_endpoint: {
+            options: {
+              logging: true,
+              auto_reconnect: true,
+            },
+            events: {
+              on_open: (connection = {}) => {
+                console.log('Connection to example_endpoint opened!');
+              },
+              on_message: (message = {}) => {
+                console.log('Message received from server:', message);
+              },
+              on_close: (code = 0, reason = '', connection = {}) => {
+                console.log('Connection to example_endpoint closed.', { code, reason });
+              },
+            },
+          },
+        };
+      },
+      events: {
+        'submit form': (event = {}, instance = {}) => {
+          instance.websockets.example_endpoint.send({
+            message: event.target.message.value,
+          });
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          <form>
+            <input type="text" name="message" placeholder="Type your message here.." />
+            <button type="submit">Send Message</button>
+          </form>
+        `;
+      },
+    });
+
+    export default Index;
+
+Above, we've defined a connection to our hypothetical websocket server at `ws://localhost:2600/api/_websockets/example_endpoint`. To do it, we pass the option `websockets` to our component options as a `function` that returns an `object` defining the websocket endpoints we want to connect to. On that `object`, we define key/value pairs where the key is the name of a websocket endpoint we want to connect to (`example_endpoint`) and the value is an object defining the behavior of the websocket client.
+
+Here, we set `options.logging` to `true` to enable logging on all websocket connection activity and `options.auto_reconnect` to `true` to establish an auto-reconnect interval in the event that our connection to the server closes.
+
+Next, we define `events` to listen for as an `object` containing methods for the three different events we can listen for: `on_open()`, `on_message()`, and `on_close()`.
+
+Behind the scenes, with this, Joystick will automatically establish a websocket client connection for us and assign the connection back to our component instance at `instance.websockets.example_endpoint`.
+
+Utilizing that value, we've added an [event listener](ui/components/events) on the `submit` event of the `<form></form>` element our component is rendering. When it does, we want to send a websocket message back to our server with the value of our input. To do it, we call the `.send()` method of our `instance.websockets.example_endpoint` value, passing an object that will be automatically stringified and sent to our server.
+
+## Filtering messages with query params
+
+By default, WebSocket connections to a given server receive all messages sent from that server. In some cases, a WebSocket client may want to receive messages selectively, for example, in a chat app where it only wants to receive messages for the currently focused user and not _all_ users.
+
+To filter message traffic, an additional `query` object can be specified with a nested `id` field specifying a unique ID to filter messages by:
+
+/ui/pages/index/index.js
+
+    import joystick, { accounts } from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      data: async () => {
+        return {
+          user: await accounts.user(),
+        };
+      },
+      websockets: (instance = {}) => {
+        return {
+          example_endpoint: {
+            options: {
+              logging: true,
+              auto_reconnect: true,
+            },
+            query: {
+              id: instance?.data?.user?._id,
+            },
+            events: {
+              on_open: (connection = {}) => {
+                console.log('Connection to example_endpoint opened!');
+              },
+              on_message: (message = {}) => {
+                console.log('Message received from server:', message);
+              },
+              on_close: (code = 0, reason = '', connection = {}) => {
+                console.log('Connection to example_endpoint closed.', { code, reason });
+              },
+            },
+          },
+        };
+      },
+      events: { ... },
+      render: ({ state, when }) => { ... },
+    });
+
+    export default Index;
+
+As an example, above, we've extended our component to include a [data](ui/components/data) function which allows us to fetch the current user via the `accounts.user()` method and pass it to our app via `instance.data`. With this, when we establish our WebSocket client connection, we add an additional `query` object to our `example_endpoint` options, setting the nested `id` field to `instance?.data?.user?._id`, or, the currently logged in user's ID.
+
+On the server, now, we can anticipate this ID being passed and filter messages that we send to clients via this ID.
+
+## API Reference
+
+Websockets API
+
+    websockets: (instance: object) => {
+      return {
+        websocket_name: {
+          options: {
+            logging: boolean;
+            auto_reconnect: boolean; // Alias autoReconnect
+          },
+          query: {
+            id: string;
+          },
+          events: {
+            on_open(connection: object) => void;
+            on_message(message: object) => void;
+            on_close(code: integer, reason: string, connection: object) => void;
+          }
+        }
+      }
+    };

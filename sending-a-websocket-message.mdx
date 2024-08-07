@@ -1,0 +1,112 @@
+---
+title: "Sending A Websocket Message"
+---
+
+
+There are two ways to send a WebSocket message to a client: via the `connection.send()` method on the `connection` object passed to your WebSocket endpoint's `on_open()`, `on_message()`, and `on_close()` event handlers, or, via the `websockets()` function available as a named export from `@joystick.js/node`.
+
+## Via the connection object
+
+As part of your WebSocket server's definition, the `connection` object passed to our `on_open()`, `on_message()`, and `on_close()` methods contains a `.send()` method that can be used to send messages back to clients.
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      websockets: {
+        example_endpoint: {
+          on_open: (connection = {}) => {
+            connection.send(JSON.stringify({ message: 'Hello from the server!' }));
+          },
+          on_message: (message = {}, connection = {}) => {
+            connection.send(JSON.stringify({ message: 'Hello from the server!' }));
+          },
+          on_close: (code = 0, reason = '', connection = {}) => {
+            connection.send(JSON.stringify({ message: 'Hello from the server!' }));
+          },
+        },
+      },
+      routes: { ... }
+    });
+```
+
+Because Joystick's client/component-side WebSocket connection anticipates messages being sent as stringified JSON (`JSON.parse()` is run on all messages received on the client), here, when we call to `connection.send()`, we make sure to send our message as an `object` that's passed to `JSON.stringify()` to convert it to the expected format.
+
+## Using the websockets() function
+
+To make your WebSocket server accessible to the rest of your app and to keep sending consistent, Joystick includes a `websockets()` function exposed as a named export from `@joystick.js/node`. This function can be imported anywhere in your server-side code to send messages to the client.
+
+/index.server.js
+
+```js
+    import joystick, { websockets } from '@joystick.js/node';
+
+    joystick.app({
+      websockets: {
+        example_endpoint: {
+          on_open: (connection = {}) => {
+            websockets('example_endpoint').send({ message: 'Hello from the server!' });
+          },
+          on_message: (message = {}, connection = {}) => {
+            websockets('example_endpoint').send({ message: 'Hello from the server!' });
+          },
+          on_close: (code = 0, reason = '', connection = {}) => {
+            websockets('example_endpoint').send({ message: 'Hello from the server!' });
+          },
+        },
+      },
+      routes: { ... }
+    });
+
+```
+To use the function, we import it and then call it passing the name of the WebSocket server we want to target. Once called, we anticipate a `.send()` method being available on the object returned. This `.send()` method is unique to the one we get from the `connection` object above as it automatically stringifies the value we pass it. This allows us to pass a plain JavaScript object and trust that it will be formatted properly before being relayed to clients.
+
+### Filtering messages
+
+When sending messages via the `websockets()` function, if you'd like to send messages to a specific subset of clients, you can pass a `unique_connection_id` along with the message being sent. When you do this, Joystick will only target clients who have [passed the same ID via the `query.id` field](ui/components/websockets#filtering-messages-with-query-params) when establishing their client connection.
+
+Sending a Message to a Specific ID
+
+```js
+    websockets('example_endpoint').send(
+      { message: 'Hello from the server!' },
+      'some_unique_id_abc123'
+    );
+    ```
+
+Above, the `some_unique_id_abc123` `string` passed as the second argument to `.send()` can be replaced with some unique ID (e.g., a user ID, a chat channel's ID, etc.).
+
+## API Reference
+
+### websockets()
+
+#### Function API
+
+Function API
+
+```js
+    websockets(websocket_name: string) => {
+      send: (message: object, channel_id: string) => void,
+    }
+```
+#### Arguments
+
+- websockets function
+
+  A function that can be called to create a connection object for the passed `websocket_name`. Returns an object with a `.send()` method that can be used to send messages to clients connected to `websocket_name`.
+
+#### Returns
+
+Return Value
+
+```js
+    {
+      send: (message: object, channel_id: string) => void,
+    }
+    ```
+
+- send function
+
+  A function that can be called to send a message to clients connected to `websocket_name`. Accepts arguments of a `message` as an object (required) and a `channel_id` (optional).

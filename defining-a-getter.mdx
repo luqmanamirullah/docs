@@ -1,0 +1,45 @@
+---
+title: "Defining A Getter"
+---
+
+# Defining a Getter
+
+As their name implies, in a Joystick app, getters are the part of our API responsible for _getting_ data. Getters can retrieve data from any data source (e.g., a third-party API or a static file), though, typically your data source will be one of the databases you've connected to your app.
+
+As an example, we're going to wire up a getter that returns the test data we created earlier via our fixture. In the `/api` folder created for you when you ran `joystick create`, we want to create another folder `books`. Inside of that folder, we want to create a file `getters.js`:
+
+/api/books/getters.js
+
+    const getters = {
+      books: {
+        get: () => {
+          return process.databases.mongodb.collection('books').find().toArray();
+          // PostgreSQL
+          // return process.databases.postgresql.query(`SELECT * FROM books`);
+        },
+      },
+    };
+
+    export default getters;
+
+Getters are defined on an object (typically, we expect to have more than one getter for a data source/topic). In the file above, we've created a variable `getters` that's assigned an object containing another object `books`.
+
+That name, `books`, is the name of our getter (behind the scenes, Joystick will automatically create an `HTTP GET` route at `/api/_getters/books` for this). Finally, we export `getters` as the default export from our file with `export default getters` (you'll see how this comes into play in [Registering Your API](node/app/api/registering-getters-and-setters)).
+
+On that `books` object, we've defined a single method `get()` which is responsible for performing the work to _get_ the data for our getter. The `get()` function is data-source agnostic, meaning, we can get our data from wherever we'd like. For this example, we're going to retrieve the books that we inserted into our database using our fixture earlier.
+
+Because we configured our Joystick app to connect to MongoDB earlier (or, if you preferred, PostgreSQL), behind the scenes when we started our app, Joystick automatically connected the driver for MongoDB and made it globally accessible in our app at `process.databases.mongodb` (or `process.databases.postgresql` for a PostgreSQL database). Here, we tap into that driver and run a `.find()` query on our `books` collection to retrieve the books we created with our fixture.
+
+Later, we'll see how to call to our `books` getter from a component and render our data on the client (browser).
+
+[](getting-started-tutorial/composing-components)
+
+#### Previous
+
+Composing Components
+
+[](getting-started-tutorial/defining-a-setter)
+
+#### Next
+
+Defining a Setter

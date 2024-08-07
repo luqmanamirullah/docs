@@ -1,0 +1,112 @@
+---
+title: "Validating Input"
+---
+
+
+Joystick uses a built-in validation library for validating inputs passed from the browser to the server as part of a call to a getter or setter.
+
+Validation rules are defined using a nested object structure (written to mimic the structure of the data you're passing from the client) along with a few different properties to set the rules for your inputs.
+
+Input validation can be attached to a getter or setter as follows:
+
+/api/books/getters.js
+
+```js
+    const getters = {
+      books: {
+        input: {
+          category: {
+            type: 'string',
+            required: true,
+          }
+        },
+        get: (input = {}, context = {}) => {
+          return process.databases.mongodb.collection('books').find({
+            user_id: context?.user?._id,
+            category: input?.category,
+          }).toArray();
+        }
+      }
+    };
+    
+    export default getters;
+```    
+
+Here, `category` is the name of the field we want to validate. We expect it to have a data type of `string` and require it to be passed in the input.
+
+The object assigned to the field name (here, `category`) is known as the validator, while the properties on that object are known as the rules _for_ that validator.
+
+Before a getter or setter's `get()` or `set()` method is executed, if present, the `input` they pass will be checked against the provided schema. If the `input` meets expectations, the request will proceed as normal.
+
+In the event that the input of a client's request fails validation, Joystick will return an `HTTP 400 Bad Request` status code.
+
+## Complex Validation
+
+Validator objects can be composed together to create complex validation. For example, consider the following input validation schema:
+
+Example Input Validation Schema
+
+```js
+    input: {
+      name: {
+        type: "string",
+        required: true,
+      },
+      instruments: {
+        type: "array",
+        allowed_values: ["piano", "guitar", "vocals", "bass"],
+      },
+      albums: {
+        type: "array",
+        element: {
+          type: "object",
+          fields: {
+            title: {
+              type: "string",
+              required: true,
+            },
+            year: {
+              type: "string",
+              optional: true,
+            },
+          },
+        },
+      },
+    },
+```    
+
+This could be used to validate the following input:
+
+Example Input
+
+```js
+    input: {
+      name: "Trent Reznor",
+      instruments: ["piano", "guitar", "vocals", "kazoo"],
+      albums: [
+        { title: 'The Downward Spiral', year: '1994' },
+        { title: 'The Fragile', year: '1999' },
+        { title: 'Broken EP', year: '1995' },
+      ],
+    },
+```    
+
+Above, we'd expect this input to _fail_ validation as the `instruments` array on the `input` has a value that isn't listed in the `allowed_values` array for that field in the schema.
+
+While your data should be kept shallow for the sake of clarity and simplicity, Joystick's validation can technically be nested infinitely as it runs recursively to an arbitrary depth.
+
+## Supported Rules
+
+A validator can define the following rules:
+
+| Rule name | Values | Description |
+| --- | --- | --- |
+| allowed\_values (alias: allowedValues) | An array of values as: strings, integers, floats, or booleans. | An enumerable (enum) list of values that are allowed to be passed for the field. |
+| element | A validator object that describes the contents of each item in an array. | Only required when \`type\` is equal to \`array\`. Defines the shape of an element expected in the array. |
+| fields | A validator object that describes the contents of an object. | Only required when \`type\` is equal to \`object\`. Defines the shape of an object passed as the value for an input field. |
+| max | A maximum value expressed as an integer or float. | Set a maximum value for the field as a number (integer or float). |
+| min | A minimum value expressed as an integer or float. | Set a minimum value for the field as a number (integer or float). |
+| optional | A boolean \`true\` or \`false\`. | Specifies whether or not a field is optional. If set to \`false\`, a value is required. |
+| regex | A regular expression expressed as a \`/thing/g\` regular expression, or, a JavaScript RegExp object. | Validates whether the field value conforms to the regular expression. |
+| required | A boolean \`true\` or \`false\`. | Specifies whether or not a field is required. If set to \`false\`, a value is optional. |
+| type | As a JavaScript string, one of: `any`,`array`, `boolean`, `float`, `integer`, `number`, `object`, or `string`. | The expected type of data for the field to contain. |

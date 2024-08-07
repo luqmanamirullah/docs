@@ -1,0 +1,85 @@
+---
+title: "Sign Up"
+---
+
+# Sign Up
+
+To create new user accounts, the `accounts.signup()` method can be called from your component:
+
+/ui/pages/signup/index.js
+
+```js
+    import joystick, { accounts } from '@joystick.js/ui';
+    
+    const Signup = joystick.component({
+      events: {
+        'submit form': (event = {}) => {
+          accounts.signup({
+            email_address: event.target.email_address.value,
+            password: event.target.password.value,
+            metadata: {
+              name: event.target.name.value,
+            }
+          }).then(() => {
+            location.pathname = '/dashboard';
+          });
+        },
+      },
+      render: () => {
+        return `
+          <div class="signup">
+            <form>
+              <label>Name</label>
+              <input type="text" name="name" placeholder="Name" />
+              <label>Email Address</label>
+              <input type="email" name="email_address" placeholder="Email Address" />
+              <label>Password</label>
+              <input type="password" name="password" placeholder="Password" />
+              <button type="submit">Sign Up</button>
+            </form>
+          </div>
+        `;
+      },
+    });
+    
+    export default Signup;
+```    
+
+Above, we listen for a `submit` event on our `<form></form>` element, calling to `accounts.signup()` to create a new user. Because we expect `accounts.signup()` to return a Promise, we use a `.then()` callback if the request is successful, redirecting to a hypothetical route that requires a logged in user.
+
+## API Reference
+
+### accounts.signup()
+
+#### Function API
+
+Function API
+
+    accounts.signup(options: object) => Promise;
+    
+
+#### Arguments
+
+*   options object
+    
+    An `object` defining the parameters for the new user account.
+    
+    *   email\_address string Required
+        
+        A `string` defining the email address for the new user account.
+        
+    *   username string
+        
+        A `string` defining the username for the new user account.
+        
+    *   password string Required
+        
+        A `string` defining the password for the new user account.
+        
+    *   metadata object
+        
+        An `object` defining additional metadata for the new user account.
+        
+        *   language string
+            
+            A `string` defining the preferred language for the user as an [ISO Language Code](https://gist.github.com/rglover/23d9d10d788c87e7fc5f5d7d8629633f).

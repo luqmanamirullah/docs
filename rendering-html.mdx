@@ -1,0 +1,36 @@
+---
+title: "Rendering HTML"
+---
+
+# Rendering HTML
+
+The simplest form of Joystick component is one that renders a string of HTML via the `render()` method you pass to the component's options object:
+
+Example Joystick Component
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const MailingList = joystick.component({
+      render: () => {
+        return `
+          <div class="mailing-list">
+            <h2>Mailing List</h2>
+            <form>
+              <label>First Name</label>
+              <input type="text" name="first_name" placeholder="First Name" />
+              <label>Email Address</label>
+              <input type="email" name="email_address" placeholder="Email Address" />
+              <button type="submit">Join the List</button>
+            </form>
+          </div>
+        `;
+      },
+    });
+
+    export default MailingList;
+    ```
+
+The string of HTML you return from `render()` is plain HTML. Joystick doesn't introduce any new languages, attribute hacks, etc. If you can find it in the HTML spec, it will work with Joystick.
+
+The string your return from `render()` should use backticks ` `` ` to tell JavaScript this string should be treated as a [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals). This not only allows us to write multi-line strings of HTML, but it also enables interpolation, or, the ability to embed JavaScript variables (or the results of calling JavaScript functions) directly into our HTML string.

@@ -1,0 +1,165 @@
+---
+title: "Testing API Endpoints"
+---
+
+# Testing API Endpoints
+
+To test your [getters](node/app/api/getters) and [setters](node/app/api/setters), `@joystick.js/test` includes `test.api.get()` and `test.api.set()` methods to call endpoints directly.
+
+## Testing a Getter
+
+To test a getter, the `test.api.get()` method can be utilized:
+
+/tests/api/books/getters.js
+
+```js
+    import test from '@joystick.js/test';
+
+    test.that('the book getter returns a book', async (assert = {}) => {
+      const data = await test.api.get('book', {
+        input: {
+          title: 'Tough and Competent',
+        }
+      });
+
+      assert.is(data?.author, 'Gene Kranz');
+    });
+```
+The `test.api.get()` method is analogous to [the `get()` method exported from `@joystick.js/ui`](ui/api/get). To call a getter, we first pass the name of the getter `book` as the first argument and then, as the second argument, we pass an options object. Here, we've set the `input` value in our options to get a book with a `title` of `Tough and Competent`.
+
+In response, we get the exact output of our getter endpoint. To verify our getter worked, we assert that the `author` field on the resulting data returned by the `book` getter matches the author we expect.
+
+## Testing a Setter
+
+To test a setter, the `test.api.set()` method can be utilized:
+
+```js
+/tests/api/books/setters.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the create_book setter creates a book', async (assert = {}) => {
+      await test.api.set('create_book', {
+        input: {
+          title: 'Tough and Competent',
+          author: 'Gene Kranz',
+        }
+      });
+
+      const book = await process.databases.mongodb.collection('books').findOne({
+        title: 'Tough and Competent',
+        author: 'Gene Kranz',
+      });
+
+      assert.is(book?.author, 'Gene Kranz');
+    });
+```
+The `test.api.set()` method is analogous to [the `set()` method exported from `@joystick.js/ui`](ui/api/set). To call a setter, we first pass the name of the setter `create_book` as the first argument and then, as the second argument, we pass an options object. Here, we've set the `input` value in our options with the `title` and `author` of a book we'd like to create.
+
+To verify our setter worked, we run a database query to get a book with the `title` and `author` we passed and assert that the `author` field on the resulting data returned by that query matches the author we expect.
+
+## Passing a user
+
+For both the `test.api.get()` and `test.api.set()` methods, via the options object, a user can be passed along with the request:
+
+/tests/api/books/getters.js
+
+```js
+    import test from '@joystick.js/test';
+
+    test.that('the create_book setter creates a book for the user', async (assert = {}) => {
+      const user = await test.accounts.signup({
+        email_address: 'example@test.com',
+        password: 'password',
+        metadata: {
+          name: 'Ryan Glover',
+        },
+      });
+
+      const data = await test.api.set('create_book', {
+        user,
+        input: {
+          title: 'Tough and Competent',
+          author: 'Gene Kranz',
+        }
+      });
+
+      const book = await process.databases.mongodb.collection('books').findOne({
+        title: 'Tough and Competent',
+        author: 'Gene Kranz',
+      });
+
+      assert.is(book?.owner === user?._id, true);
+    });
+```
+In the example above, we assume that our setter `create_book` will automatically assign the logged in user's `_id` as the value of `owner` on the book we create.
+
+## API Reference
+
+### test.api.get()
+
+#### Function API
+
+Function API
+
+    test.api.get(getter_name: string, options: object) => Promise;
+
+### Arguments
+
+- getter_name string
+
+  The name of a getter as a `string` to call in your API.
+
+- options object
+
+  The options for the getter request.
+
+  - user object
+
+    The `user` object returned from a call to `test.accounts.signup()`.
+
+  - skip boolean
+
+    A `boolean` value that decides if/when a getter request should be skipped.
+
+  - input object
+
+    The input values for the getter request as an `object`.
+
+  - output array\[string\]
+
+    An `array` of `string`s describing which fields to return as output from the getter response. Can use dot notation `like.this` to selectively return nested object fields in the response value.
+
+### test.api.set()
+
+#### Function API
+
+Function API
+
+    test.api.set(setter_name: string, options: object) => Promise;
+
+### Arguments
+
+- setter_name string
+
+  The name of a setter as a `string` to call in your API.
+
+- options object
+
+  The options for the setter request.
+
+  - user object
+
+    The `user` object returned from a call to `test.accounts.signup()`.
+
+  - skip boolean
+
+    A `boolean` value that decides if/when a setter request should be skipped.
+
+  - input object
+
+    The input values for the setter request as an `object`.
+
+  - output array\[string\]
+
+    An `array` of `string`s describing which fields to return as output from the setter response. Can use dot notation `like.this` to selectively return nested object fields in the response value.

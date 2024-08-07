@@ -1,0 +1,31 @@
+---
+title: "DOMNode"
+---
+
+# DOMNode
+
+In order to interact with the DOM node that's automatically generated for your component, Joystick automatically providers the `DOMNode` value via your component instance. `instance.DOMNode` can be helpful for referencing or (carefully) manipulating the DOM independent of Joystick's rendering. The `DOMNode` value can be accessed from anywhere on your component where the `instance` is available.
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      lifecycle: {
+        on_mount: (instance = {}) => {
+          const button = instance.DOMNode.querySelector('button');
+          // Interact with the DOM node for the button in your component.
+        },
+      },
+      render: () => {
+        return `
+          <div>
+            <button>Click Me</button>
+          </div>
+        `;
+      },
+    });
+
+#### Use Extreme Caution
+
+extreme caution should be used when interacting with the DOMNode as changes to that DOM node or its children can cause unexpected rendering bugs. Be certain that you know what you're doing before making any changes to this value.

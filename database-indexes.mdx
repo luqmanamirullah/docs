@@ -1,0 +1,57 @@
+---
+title: "Database Indexes"
+---
+
+
+To aid in the process of creating indexes for your app's database, Joystick includes support for a special hook function `indexes()` passed via the options object passed to `joystick.app()`.
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      indexes: () => {
+        // Run your indexes here...
+      },
+    });
+    ```
+
+Inside of the function, database indexes can be created by calling the appropriate query functions for your app's databases (see below). If your app has a large number of indexes, it's recommended that you store them in the `/indexes` folder at the root of your app, creating one file per collection/table (each file should export a function that can be called inside of the `indexes()` function showcased above).
+
+## Creating MongoDB Indexes
+
+While Joystick itself does not include any helpers for creating MongoDB indexes, indexes can easily be created directly via the MongoDB driver:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      indexes: async () => {
+        await process.databases.mongodb.collection('posts').createIndex({ slug: 1 });
+        await process.databases.mongodb.collection('posts').createIndex({ title: 1 });
+      },
+    });
+
+    ```
+To learn more about creating indexes for MongoDB, [read the official documentation](https://www.mongodb.com/docs/manual/indexes/).
+
+## Creating PostgreSQL Indexes
+
+While Joystick itself does not include any helpers for creating PostgreSQL indexes, indexes can easily be created directly via the PostgreSQL driver:
+
+/index.server.js
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      indexes: async () => {
+        await process.databases.postgresql.query(`CREATE INDEX IF NOT EXISTS posts_slug ON posts(slug)`);
+        await process.databases.postgresql.query(`CREATE INDEX IF NOT EXISTS posts_slug ON posts(title)`);
+      },
+    });
+```
+To learn more about creating indexes for PostgreSQL, [read the official documentation](https://www.postgresql.org/docs/current/indexes.html).

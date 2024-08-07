@@ -1,0 +1,51 @@
+---
+title: "Schema Validation"
+---
+
+
+As a convenience, `@joystick.js/node` offers the schema validation function used behind the scenes for [validating getter/setter input](node/app/api/validating-input) `validate_input` as a named export to be used in non-Joystick code within your app.
+```js
+    import { validate_input } from '@joystick.js/node';
+
+    const errors = validate_input({
+      name: {
+        first: 'Ryan',
+        last: 'Glover',
+      },
+    }, {
+      name: {
+        type: 'object',
+        required: true,
+        fields: {
+          first: {
+            type: 'string',
+            required: true,
+          },
+          last: {
+            type: 'string',
+            required: true,
+          }
+        },
+      },
+    });
+
+    ```
+Above, the first argument to `validate_input` is the input value to validate and the second argument is [the schema to validate it against](node/app/api/validating-input). In response, if there are any errors with the input value, each error will be returned as a string describing the path and the error the occurred.
+
+## API Reference
+
+### validate_input()
+
+#### Function API
+
+    validate_input(input: object, schema: object) => array[string];
+
+#### Arguments
+
+- input object Required
+
+  The input `object` to validate.
+
+- schema object Required
+
+  The schema `object` to validate the input `object` against.

@@ -1,0 +1,68 @@
+---
+title: "URL"
+---
+
+# URL
+
+As a convenience, to identify the current URL, it's route `params` and `query` params, Joystick includes a `url` object globally on the component instance.
+
+/ui/components/navigation/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Navigation = joystick.component({
+      render: ({ url }) => {
+        return `
+          <nav>
+            <ul>
+              <li class="${url.is_active('/') ? 'is-active' : ''}"><a href="/">Home</a></li>
+              <li class="${url.is_active('/books') ? 'is-active' : ''}"><a href="/books">Books</a></li>
+              <li class="${url.is_active('/movies') ? 'is-active' : ''}"><a href="/movies">Movies</a></li>
+              <li class="${url.is_active('/games') ? 'is-active' : ''}"><a href="/games">Games</a></li>
+            </ul>
+          </nav>
+        `;
+      },
+    });
+
+    export default Navigation;
+
+Above, we utilize the `url.is_active()` method to decide whether or not to mark navigation items as active. Because we expect `url.is_active()` to return a `boolean`, if there's a match for the route, it will return `true`, applying the `is-active` CSS class to the corresponding navigation item.
+
+## API Reference
+
+URL API
+
+    url: {
+      is_active: (url: string) => boolean; // alias: isActive
+      params: object;
+      path: string;
+      query: object;
+      route: string;
+    };
+
+#### Parameters
+
+- is_active (alias: isActive) function
+
+  Tests whether the passed URL `string` matches the currently active URL, returning a `boolean`.
+
+  Function API
+
+      is_active(url: string) => boolean;
+
+- params object
+
+  Contains any route parameters from the route defined on the server. For example, in the route `/books/:category`, `:category` would be a param we could expect at `params.category`.
+
+- path string
+
+  Contains the current path for the user (e.g., `/books/fiction`).
+
+- query object
+
+  Contains any query parameters from the current URL. For example, when visiting the path `/books/fiction?order=newest`, `order` would be a query param we could expect at `query.order`.
+
+- route string
+
+  Contains the current matching route for the current path on the server (e.g., `/books/fiction` would match the route `/books/:category`).

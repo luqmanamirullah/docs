@@ -1,0 +1,12 @@
+---
+title: "Origin"
+---
+
+
+For convenience, `@joystick.js/node` offers a named export `origin` that you can reference in your code to get the current HTTP origin for the app.
+
+    import { origin } from '@joystick.js/node';
+
+In `development`, the `origin` value is equal to `http://localhost:<app_port>` (e.g., `http://localhost:2600`). In a non-development environment, the `origin` value is mapped to the value of `process.env.ROOT_URL` (e.g., `https://myapp.com`).
+
+Using the `origin` value is highly recommended as it helps to avoid bugs in code that need to reference the current app URL (e.g., when sending an email with a clickable link).

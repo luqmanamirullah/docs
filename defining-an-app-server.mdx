@@ -1,0 +1,85 @@
+---
+title: "Defining An App Server"
+---
+
+
+The heart of a Joystick app begins in the `/index.server.js` file at the root of your app. In development, when you run `joystick start`, Joystick will run this file via `node`, starting the Express HTTP server running under the hood and instrumenting all of Joystick's server-side features.
+
+By making a call to the `joystick.app()` method on the default export from `@joystick.js/node`, we can define our app server and configure it's behavior.
+
+/index.server.js
+```javascript
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: {
+        '/': (req = {}, res = {}) => {
+          res.send('Hello!');
+        }
+      },
+    });
+    ```
+
+## API Reference
+
+### joystick.app()
+
+#### Function API
+
+Function API
+
+    joystick.app(options: object) => Promise;
+
+#### Parameters
+
+- options object
+
+  An object defining options for `joystick.app()`.
+
+  - accounts object
+
+    An object defining options for Joystick's user accounts APIs like [Validating Signup Metadata](node/accounts/validating-signup-metadata) and [Event Hooks](node/accounts/event-hooks).
+
+  - api object
+
+    An object representing an [API schema](node/app/api/registering-getters-and-setters) for the app.
+
+  - cron_jobs (alias: cronJobs) object
+
+    An object containing [cron job definitions](defining-a-cron-job) for the app.
+
+  - csp object
+
+    An object containing [Content Security Policy (CSP) definitions](node/content-security-policy-csp) for the app.
+
+  - events object
+
+    An object containing [Node.js event listener methods](node/node-js-event-listeners) for the app.
+
+  - fixtures function
+
+    A function called after the app's databases are connected for defining [database fixtures](node/fixtures).
+
+  - indexes function
+
+    A function called after the app's databases are connected for defining [database indexes](node/database-indexes).
+
+  - middleware array\[function\]
+
+    An array containing [Middleware functions](node/middleware) for the app.
+
+  - queues object
+
+    An object containing [queue definitions](node/app/queues/defining-a-queue) for the app.
+
+  - routes object Required
+
+    An object containing [route definitions](node/app/routes/basic-routes) for the app.
+
+  - uploaders object
+
+    An object containing [uploader definitions](node/app/uploaders/defining-an-uploader) for the app.
+
+  - websockets object
+
+    An object containing [WebSocket server definitions](node/app/queues/defining-a-queue) for the app.

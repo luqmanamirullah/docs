@@ -1,0 +1,48 @@
+---
+title: "On_before_unmount"
+---
+
+# on_before_unmount
+
+Immediately before a component is removed from screen, if present, the `on_before_unmount()` method for the component will be called.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      lifecycle: {
+        on_before_unmount: (instance = {}) => {
+          // Handle the on_before_unmount() event.
+        },
+      },
+      render: ({ state, when }) => {
+        return `
+          <div>...</div>
+        `;
+      },
+    });
+
+    export default Index;
+```
+## Intended Usage
+
+While any code can be run inside of the `on_before_unmount()` method, it should be reserved for calling "cleanup" code or third-party code related to the user navigating away from the current component (e.g., if the component is purposed as a page, notifying an analytics provider).
+
+## API Reference
+
+### on_before_unmount()
+
+#### Function API
+
+Function API
+
+```js
+    on_before_unmount(component_instance: object) => void;
+```
+#### Arguments
+
+- component_instance boolean
+
+  The current component instance as an `object`.

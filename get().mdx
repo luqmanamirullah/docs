@@ -1,0 +1,83 @@
+---
+title: "Get()"
+---
+
+
+To call a getter from your API directly, the `get()` method can be called from within your component.
+
+/ui/pages/index/index.js
+
+```js
+    import joystick, { get } from '@joystick.js/ui';
+
+    const Book = joystick.component({
+      state: {
+        author: null,
+      },
+      events: {
+        'click .author-name': (event = {}, instance = {}) => {
+          get('author', {
+            input: {
+              author_id: event?.target?.getAttribute('data-author-id'),
+            }
+          }).then((author) => {
+            instance.set_state({ author });
+          });
+        },
+      },
+      render: ({ props, state, when }) => {
+        return `
+          <div>
+            <header>
+              <h1>${props?.book?.title}</h1>
+              <h5 data-author-id="${props?.book?.author?._id}" class="author-name">${props?.book?.author?.name}</h5>
+              ${when(state?.author, `
+                <div class="author">
+                  <img src="${state?.author?.avatar}" alt="${state?.author?.name}" />
+                  <h4>${state?.author?.name}</h4>
+                  <p>${state?.author?.biography}</p>
+                </div>
+              `)}
+            </header>
+          </div>
+        `;
+      },
+    });
+
+    export default Book;
+```
+In the example above, we're defining a component where we want to fetch additional information about a book's author when we click on the author's name. To do it, we define a `click` event listener on the `.author-name` selector. Inside of the event handler for that listener, we make a call to the `get()` method we're importing from `@joystick.js/ui` as a named export.
+
+In response to that call, we assume that we'll get back an `author` matching the `author_id` we've passed as an `input` value. When we do, we take that `author` and copy them over to our component's `state`, triggering the conditional HTML down in our `render()` function wrapped by the `when()` statement.
+
+## API Reference
+
+### get()
+
+#### Function API
+
+Function API
+
+    get(getter_name: string, options: object) => Promise;
+
+#### Arguments
+
+- getter_name string
+
+  The name of a getter as a `string` to call in your API.
+
+- options object
+
+  The options for the getter request.
+
+  - skip boolean
+
+    A `boolean` value that decides if/when a getter request should be skipped.
+
+  - input object
+
+    The input values for the getter request as an `object`.
+
+  - output array\[string\]
+
+    An `array` of `string`s describing which fields to return as output from the getter response. Can use dot notation `like.this` to selectively return nested object fields in the response value.

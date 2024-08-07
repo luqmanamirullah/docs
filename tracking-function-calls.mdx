@@ -1,0 +1,146 @@
+---
+title: "Tracking Function Calls"
+---
+
+# Tracking Function Calls
+
+Internally in `@joystick.js/ui` and `@joystick.js/node`, for tests, function calls are automatically tracked to all core APIs. This allows you to test the behavior of your app in a nearly-transparent way, confirming that what you intended to call was called without the need for excessive mocking or heavy instrumentation at the app level.
+
+## Accessing Calls
+
+To access calls to any of the listed "Tracked Calls" below, the `test.utils.get_function_calls()` method can be utilized:
+
+```js
+    const calls = await test.utils.get_function_calls('<tracked_call_path>');
+```    
+
+## Check If Function Called
+
+To check if a specific function has received any calls (with a `boolean` response), the `test.utils.function_called()` method can be utilized:
+
+```js
+    const function_called = await test.utils.function_called('<tracked_call_path>');
+```    
+
+## Tracked Calls
+
+The following calls are tracked across `@joystick.js/ui` and `@joystick.js/node`. Below, the path of the tracked calls that you would pass to the `test.utils.get_function_calls()` or `test.utils.function_called()` methods described above are listed.
+
+### @joystick.js/ui
+
+In components, function calls can be tracked on a per-component basis by utilizing the `test.name` value in your component options. If this is not available, Joystick will create a random ID to group together function calls for a component.
+
+#### Lifecycle Function Calls
+
+*   `ui.<test.name || random_id>.render_for_mount`
+*   `ui.<test.name || random_id>.rerender`
+*   `ui.<test.name || random_id>.lifecycle.on_before_mount`
+*   `ui.<test.name || random_id>.lifecycle.on_mount`
+*   `ui.<test.name || random_id>.lifecycle.on_before_render`
+*   `ui.<test.name || random_id>.lifecycle.on_render`
+*   `ui.<test.name || random_id>.lifecycle.on_update_props`
+*   `ui.<test.name || random_id>.lifecycle.on_refetch_data`
+*   `ui.<test.name || random_id>.lifecycle.on_before_unmount`
+
+#### Data
+
+*   `ui.<test.name || random_id>.data.refetch`
+
+#### Events
+
+*   `ui.<test.name || random_id>.events.<event_type>.selector_<selector>`
+
+#### Methods
+
+*   `ui.<test.name || random_id>.methods.<method_name>`
+
+#### Uploads
+
+*   `ui.upload.<uploader_name>`
+
+#### Websockets
+
+*   `ui.<test.name || random_id>.websockets.send`
+*   `ui.<test.name || random_id>.websockets.on_open`
+*   `ui.<test.name || random_id>.websockets.on_message`
+*   `ui.<test.name || random_id>.websockets.on_close`
+
+#### Instance Methods
+
+*   `ui.<test.name || random_id>.set_interval`
+*   `ui.<test.name || random_id>.set_timeout`
+*   `ui.<test.name || random_id>.set_state`
+
+### @joystick.js/node
+
+On the server, function calls are tracked globally (as there is only one server instance to track calls for).
+
+#### Actions
+
+*   `node.actions.<action_name>.abort`
+*   `node.actions.<action_name>.run`
+*   `node.actions.<action_name>.steps.<step_name>`
+*   `node.actions.<action_name>.steps.<step_name>.on_success`
+*   `node.actions.<action_name>.steps.<step_name>.on_error`
+
+#### API
+
+*   `node.api.getters.<getter_name>`
+*   `node.api.getters.<getter_name>.authorized`
+*   `node.api.setters.<setter_name>`
+*   `node.api.setters.<setter_name>.authorized`
+
+#### Email
+
+*   `node.email.send`
+
+#### Queues
+
+*   `node.queues.<queue_name>.jobs.<job_name>`
+
+#### Uploaders
+
+*   `node.uploaders.<uploader_name>.on_before_upload`
+*   `node.uploaders.<uploader_name>.on_after_upload`
+*   `node.uploaders.<uploader_name>.file_name`
+*   `node.uploaders.<uploader_name>.max_size_in_megabytes`
+
+#### Websockets
+
+*   `node.websockets.<server_name>.send`
+*   `node.websockets.<server_name>.on_open`
+*   `node.websockets.<server_name>.on_message`
+*   `node.websockets.<server_name>.on_close`
+
+## API Reference
+
+### test.utils.function\_called()
+
+#### Function API
+
+Function API
+
+    test.utils.function_called(tracked_call_path: string) => Promise -> boolean;
+    
+
+#### Arguments
+
+*   tracked\_call\_path string Required
+    
+    Either [a pre-defined Joystick call path](#tracked-calls), or, a custom call path used in your app.
+    
+
+### test.utils.function\_called()
+
+#### Function API
+
+Function API
+
+    test.utils.get_function_calls(tracked_call_path: string) => Promise -> array[object];
+    
+
+#### Arguments
+
+*   tracked\_call\_path string Required
+    
+    Either [a pre-defined Joystick call path](#tracked-calls), or, a custom call path used in your app.

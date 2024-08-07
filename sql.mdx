@@ -1,0 +1,234 @@
+---
+title: "SQL"
+---
+
+
+Utilizing SQL helpers to write queries for SQL-based databases.
+
+To aid in the process of authoring injection-safe SQL queries, the Joystick PostgreSQL driver includes a handful of helper functions for generating SQL statements in a JavaScript-friendly format.
+
+All methods can be accessed via the PostgreSQL driver at `process.databases.postgresql.<method_name>` when a PostgreSQL database is connected to your app.
+
+## create_table()
+
+The `create_table()` method can be used to create new PostgreSQL tables in your database:
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: { ... }
+    }).then(async () => {
+      await process.databases.postgresql.create_table({
+        table: 'posts',
+        columns: {
+          id: 'serial primary key',
+          title: 'text',
+          slug: 'text',
+          author_id: 'text',
+          content: 'text',
+        },
+      });
+    });
+```
+Above, we use the `create_table()` method to create a mock table `posts` with four columns. The `create_table()` method accepts a single `options` object as an argument with two properties: `table` (the name of the table to create) and `columns`, an object containing key/value pairs where the `key` is the name of the column and the `value` is the PostgreSQL data type for the column.
+
+Behind the scenes, Joystick creates a PostgreSQL `CREATE TABLE IF NOT EXISTS` statement to perform the query.
+
+## add_column()
+
+The `add_column()` method can be used to create a new column in an existing PostgreSQL table in your database:
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: { ... }
+    }).then(async () => {
+      await process.databases.postgresql.add_column({
+        table: 'posts',
+        column_name: 'tags',
+        column_type: 'text',
+      });
+    });
+```
+Above, we use the `add_column()` method to create a mock column `tags` on the existing table `posts` with a data type of `text`. The `add_column()` method accepts a single `options` object as an argument with three properties: `table` (the table to add the column to), `column_name`, and `column_type` (the PostgreSQL data type for the column).
+
+Behind the scenes, Joystick creates a PostgreSQL `ALTER TABLE <table> ADD COLUMN IF NOT EXISTS` statement to perform the query.
+
+## select()
+
+The `select()` method can be used to query data from an existing PostgreSQL table in your database:
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: { ... }
+    }).then(async () => {
+      const rows = await process.databases.postgresql.select({
+        table: 'posts',
+        columns: ['title', 'slug', 'author_id'],
+        where: {
+          author: 'abcd1234',
+        }
+      });
+    });
+```
+Above, we use the `select()` method to query the existing table `posts`. The `select()` method accepts a single `options` object as an argument with three properties: `table` (the table to query), `columns` (an `array` containing the column names to return for each row), and `where` (an object of key/value pairs where the `key` is the column name and the `value` is the column value to match against).
+
+Behind the scenes, Joystick creates a PostgreSQL `SELECT <columns> FROM <table> WHERE <column> = <value>` statement to perform the query.
+
+## insert()
+
+The `insert()` method can be used to insert data into an existing PostgreSQL table in your database:
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: { ... }
+    }).then(async () => {
+      const rows = await process.databases.postgresql.insert({
+        table: 'posts',
+        data: {
+          title: 'How to Upload Files to Amazon S3',
+          slug: 'how-to-upload-files-to-amazon-s3',
+          author_id: 'abcd1234',
+          content: 'Some placeholder content...',
+          tags: `['upload', 'files', 'aws', 's3']`,
+        },
+      });
+    });
+```
+Above, we use the `insert()` method to insert a row into the existing table `posts`. The `insert()` method accepts a single `options` object as an argument with two properties: `table` (the table to insert the row into) and `data` (an object of key/value pairs where the `key` is the column name and the `value` is the column value to set).
+
+Behind the scenes, Joystick creates a PostgreSQL `INSERT INTO <table> (<columns>) VALUES (<values>)` statement to perform the query.
+
+## update()
+
+The `update()` method can be used to update data in an existing PostgreSQL table in your database:
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      routes: { ... }
+    }).then(async () => {
+      const rows = await process.databases.postgresql.update({
+        table: 'posts',
+        data: {
+          title: 'How to Upload Files to AWS S3',
+        },
+        where: {
+          id: 5,
+        },
+      });
+    });
+```
+Above, we use the `update()` method to update a row in the existing table `posts`. The `update()` method accepts a single `options` object as an argument with three properties: `table` (the name of the table to update), `data` (an object of key/value pairs where the `key` is the column name and the `value` is the column value to set), and `where` (an object of key/value pairs where the `key` is the column name and the `value` is the column value to match against).
+
+Behind the scenes, Joystick creates a PostgreSQL `UPDATE <table> SET <column> = <value> WHERE <column> = <value>` statement to perform the query.
+
+## API Reference
+
+### create_table()
+
+#### Function API
+
+Function API
+
+    process.databases.postgresql.create_table(options: object) => void;
+
+#### Arguments
+
+- table string Required
+
+  The name of the table to create.
+
+- columns object Required
+
+  An `object` containing key/value pairs where the `key` is the name of the column to add and the `value` is the PostgreSQL data type for the column.
+
+### add_column()
+
+#### Function API
+
+Function API
+
+    process.databases.postgresql.add_column(options: object) => void;
+
+#### Arguments
+
+- table string Required
+
+  The name of the table to add the column to.
+
+- column_name string Required
+
+  The name of the column to add.
+
+- column_type string Required
+
+  The PostgreSQL data type for the column.
+
+### select()
+
+#### Function API
+
+Function API
+
+    process.databases.postgresql.select(options: object) => array[object];
+
+#### Arguments
+
+- table string Required
+
+  The name of the table to query.
+
+- columns array\[string\] Required
+
+  An array of strings matching column names to return for each row returned by the query.
+
+- where object Required
+
+  An object of key/value pairs where the key is the name of the column to match and the value is the column value to match.
+
+### insert()
+
+#### Function API
+
+Function API
+
+    process.databases.postgresql.insert(options: object) => void;
+
+#### Arguments
+
+- table string Required
+
+  The name of the table to query.
+
+- data object Required
+
+  An object of key/value pairs where the key is the name of the column to set and the value is the column value to set.
+
+### update()
+
+#### Function API
+
+Function API
+
+    process.databases.postgresql.update(options: object) => void;
+
+#### Arguments
+
+- table string Required
+
+  The name of the table to query.
+
+- data object Required
+
+  An object of key/value pairs where the key is the name of the column to set and the value is the column value to set.
+
+- where object Required
+
+  An object of key/value pairs where the key is the name of the column to match and the value is the column value to match.

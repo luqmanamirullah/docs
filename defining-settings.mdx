@@ -1,0 +1,157 @@
+---
+title: "Defining Settings"
+---
+
+# Defining Settings
+
+To provide configuration for your app, Joystick relies on `settings.<env>.json` files at the root of your app. You should have one `settings.<env>.json` file for each environment your app will run in (this environment is denoted by the value of `process.env.NODE_ENV`).
+
+When you start your app with `joystick start` via the CLI, this defaults to `development`. If you deploy your app using [Push](https://cheatcode.co/push), this defaults to `production`.
+
+The following settings files and environments are recommended:
+
+- `settings.development.json` - Settings for your local/development environment.
+- `settings.staging.json` - Settings for your staging environment (a private but internet-accessible version of your app running on hardware similar to your production environment).
+- `settings.production.json` - Settings for your production environment.
+- `settings.test.json` Settings for your app used when running `joystick test` via the Joystick CLI
+
+#### Non-development environment behavior
+
+While you _can_ use any environment name you wish, keep in mind that Joystick treats any environment name other than `development` as a production-like environment.
+
+## Settings file structure
+
+For all of your supported environment files, the following structure should be utilized. A description of each field's behavior can be found below.
+
+    {
+      "config": {
+        "push": {},
+        "databases": [],
+        "i18n": {
+          "default_language": "en-US"
+        },
+        "middleware": {},
+        "email": {
+          "from": "",
+          "smtp": {
+            "host": "",
+            "port": 587,
+            "username": "",
+            "password": ""
+          }
+        }
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+
+## API Reference
+
+- push object
+
+  Contains configuration for your app when deployed with Push. Only required in `settings.<env>.json` files other than `settings.development.json` for Push-deployed apps).
+
+- config object Required
+
+  Contains Joystick-specific settings for your app.
+
+  - databases array\[object\] Required
+
+    Contains the connection settings for the database you'd like to connect to your app.
+
+    - provider string Required
+
+      The name of the database provider you'd like to add to your app. Should be set to a string containing the "Provider ID" of [one of Joystick's supported database providers](databases/providers).
+
+    - options object
+
+      Additional configuration for the specified provider's Node.js driver.
+
+    - connection object
+
+      An object to specify a remote connection for the provider.
+
+      - username string
+
+        A username for the remote connection.
+
+      - password string
+
+        A password for the remote connection.
+
+      - database string
+
+        The name of the database for the remote connection.
+
+      - hosts array\[object\]
+
+        An array of objects specifying the host(s) for the remote connection.
+
+        - hostname string
+
+          The hostname for the remote database (e.g., us1.mongodbprovider.com).
+
+        - port string/integer
+
+          The port number for the remote database hostname.
+
+  - build object
+
+    Configuration for Joystick's build process.
+
+    - excluded_paths (alias: excludedPaths) array\[string\]
+
+      An array of strings specifying paths to exclude from the build. Helpful for ignoring directories with files that can be picked up by Joystick's build system (e.g., `.js` files) that should not be built.
+
+  - middleware object
+
+    Contains [overrides](node/middleware#configuring-built-in-middleware) for Joystick's built-in middleware.
+
+  - i18n object
+
+    Contains configuration for internationalization (i18n) in your app.
+
+    - default_language (alias: defaultLanguage) string
+
+      Contains a string that's a combination of the ISO-693 language code with the ISO-3166 country code (e.g., en-US, de-DE, es-ES, or ja-JP). This value is utilized if either a user language preference is not set, or, the `navigator.language` value is not present in the browser.
+
+  - email object
+
+    The email settings for your app. Specifies a third-party SMTP provider (e.g., Postmark, Mailgun, or Sendgrid) to relay email sends through.
+
+    - from string
+
+      The default `from` address to use if one is not passed to `email.send()`.
+
+    - smtp object
+
+      The SMTP settings for your app. Specifies a third-party SMTP provider (e.g., Postmark, Mailgun, or Sendgrid) to relay email sends through.
+
+      - host string
+
+        The hostname provided by your SMTP provider.
+
+      - port integer
+
+        The port provided by your SMTP provider.
+
+      - username string
+
+        The username provided by your SMTP provider.
+
+      - passsword string
+
+        The password provided by your SMTP provider.
+
+- global object Required
+
+  Contains global settings for your app. Any settings placed here will be accessible on the both the client (browser) and server.
+
+- public object
+
+  Contains public settings for your app. Any settings placed here will be accessible on the both the client (browser) and server.
+
+- private object
+
+  Contains private settings for your app. Any settings placed here will only be accessible on the server.

@@ -1,0 +1,17 @@
+---
+title: "Versioning"
+---
+
+How Joystick's versioning works across packages.
+
+While Joystick is considered a single framework, the components of that framework consist of four individual packages: `@joystick.js/ui`, `@joystick.js/node`, `@joystick.js/test`, and `@joystick.js/cli`.
+
+To keep versioning consistent, all packages are pinned to the same version. When any one of the four packages change, all packages receive a version bump identical to the package that's changing.
+
+For example, if the current version of all packages is `rc.5` and a change is made to `@joystick.js/ui` (becoming `@joystick.js/ui-rc.6`), all packages will have their version bumped to `rc.6`.
+
+This approach is used for all minor, major, patch, and release candidate versions.
+
+## Canary releases
+
+To accelerate future work on Joystick, `-canary` versions of all four packages exist for the purposes of testing changes against existing projects. **Canary packages are assumed unstable and NOT to be used in a production app**. If you'd like to play around with a canary release, check out the [`joystick use` command](cli/use) in the CLI.

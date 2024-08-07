@@ -1,0 +1,28 @@
+---
+title: "CSRF Protection"
+---
+
+# CSRF Protection
+
+One of the most common attacks a website will face is Cross-Site Request Forgery (CSRF). This attack involves an attacker creating a fake URL that points to your domain and sending it via email (or other means) to one of your users. When your user clicks that link, if the user was logged in to your app, the action related to that URL will proceed as-if the user originated it (e.g., calling to a [setter](node/app/api/setters) with some set of parameters performing a change the attacker wants to make).
+
+To guard against this, Joystick includes the ability to create user session tokens in your database that are paired with a `csrf` token. When a user visits your site, Joystick will automatically create a `joystick_session` cookie if one does not exist alongside a secret `csrf` token that's injected into the HTML rendered by your app.
+
+    <meta name="csrf" content="abc12345" />
+    
+
+Whenever you call to a getter or setter in your API, Joystick automatically includes the secret `csrf` token and attempts to match it to the user's `joystick_session` cookie on the server. If there's a match, the request proceeds as expected and if there's not, the request receives a `403 Forbidden` error.
+
+#### Query params sanitized
+
+To protect against scripts being executed via query params, Joystick automatically sanitizes HTML tags from query params passed in your app's URL. This prevents any vulnerability with the above approach, making it impossible for an attacker to read the `csrf` token Joystick injects into the page.
+
+## Enabling CSRF protection
+
+By default CSRF protection is _not_ enabled in your app. To enable it, the `"sessions": true` flag must be assigned to one of the databases in the `config.databases` array of your `settings.<env>.json` file. This tells Joystick to enable CSRF protection and generate a `joystick_session` cookie for all visitors to the site (both anonymous and logged-in users).
+
+Learn more about enabling CSRF protection [here](databases/sessions).
+
+## Session Expiration
+
+To avoid flooding your database with stale sessions, Joystick automatically cleans up sessions older than 1 hour. For MongoDB, this is done via [TTL index](https://www.mongodb.com/docs/manual/core/index-ttl/) and for PostgreSQL, this is done via cron job. After a session expires and is removed from your database, returning visitors will have a fresh session generated for them on their next visit/request.

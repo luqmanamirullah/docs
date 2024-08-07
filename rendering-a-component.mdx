@@ -1,0 +1,92 @@
+---
+title: "Rendering A Component"
+---
+
+# Rendering a Component
+
+How to render a component using `res.render()` in a route.
+
+All rendering of components in a Joystick app is done via the server. While there _is_ a hydration step in the browser, this is automated for you via Joystick's build system. To render a component, we leverage the `res.render()` function provided by Joystick on the `res` object passed to our routes:
+
+/index.server.js
+
+    import joystick from "@joystick.js/node";
+    import api from "./api/index.js";
+    import books_fixture from './fixtures/books.js';
+
+    joystick.app({
+      api,
+      fixtures: () => {
+        books_fixture();
+      },
+      routes: {
+        '/': (req = {}, res = {}) => {
+          res.render('ui/pages/index/index.js');
+        },
+      },
+    });
+
+Above, we call the `res.render()` function, passing the path to the Joystick component we want to render. Behind the scenes, Joystick will automatically load our component, and server-side render its HTML and CSS. On the client, the hydration code that's injected via the build system will automatically "hydrate" the component (make interactive by attaching the JavaScript for the component) we passed.
+
+## Rendering into a layout
+
+Optionally, we can also render a page-purposed component into another Joystick component that's purposed as a layout. First, we need to have a layout to render into. Let's replace the existing contents of `/ui/layouts/app/index.js` with the following:
+
+/ui/layouts/app/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const App = joystick.component({
+      render: ({ props, component }) => {
+        return `
+          <div class="app">
+            <nav>
+             <ul>
+               <li><a href="/">Home</a></li>
+             </ul>
+            </nav>
+            ${component(props.page, props)}
+          </div>
+        `;
+      },
+    });
+
+    export default App;
+
+Again, a layout component is just a Joystick component who's purpose is to render another page component along with some static elements. In the example above, our "static" element is the `<nav></nav>` for our app while the dynamic element is the component being passed to our layout via props as `props.page` (a property—or "prop" for short—is a variable that can be passed to a component when it's being rendered).
+
+To render _that_ component into our layout, we leverage the [component() render method](ui/components/render/render-methods/component) which helps us to compose one component into another (i.e., generate an instance for and render the HTML of a component into a parent).
+
+/index.server.js
+
+    import joystick from '@joystick.js/node';
+    import api from "./api/index.js";
+    import books_fixture from './fixtures/books.js';
+
+    joystick.app({
+      api,
+      fixtures: () => {
+        books_fixture();
+      },
+      routes: {
+        '/': (req = {}, res = {}) => {
+          res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+      },
+    });
+
+To use our layout, via a call to `res.render()`, we specify the `layout` path on the options object passed as the second argument. Behind the scenes, Joystick will automatically server-side render the HTML and CSS for the `layout` (as well as the page it's rendering) and pass the component instance for the page component specified at the path in the first argument to `res.render()` as `props.page`.
+
+[](getting-started-tutorial/defining-a-component)
+
+#### Previous
+
+Defining a Component
+
+[](getting-started-tutorial/linking-between-routes)
+
+#### Next
+
+Linking Between Routes

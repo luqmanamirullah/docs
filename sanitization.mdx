@@ -1,0 +1,50 @@
+---
+title: "Sanitization"
+---
+
+
+For security purposes, if your app manages a lot of user generated content, it's wise to add HTML sanitization to your API. Sanitization is the process of scrubbing unexpected or unwanted HTML tags from the values returned by your API. In Joystick, sanitization can be handled automatically on a global basis, or, on a per-getter or per-setter basis.
+
+#### Use with caution
+
+It's important to note that sanitization, while helpful, is not a bulletproof solution. Depending on the data returned by your API, you can run into unexpected formatting and rendering bugs. When developing, be mindful of how the data you're returning will be used in your UI to avoid surprises.
+
+## Global Sanitization
+
+To enable global sanitization, in your API schema at `/api/index.js`, set the `sanitize` option to `true`:
+
+/index.server.js
+
+```js
+    const api = {
+      sanitize: true,
+      getters: { ... },
+      setters: { ... }
+    };
+    
+    export default api;
+```    
+
+## Getter/Setter Specific Sanitization
+
+To enable getter/setter specific sanitization, on your getter or setter definition, set the `sanitize` option to `true`:
+
+/api/posts/getters.js
+
+```js
+    const getters = {
+      posts: {
+        sanitize: true,
+        authorized: (input = {}, context = {}) => {
+          return !!context.user;
+        },
+        get: async (input = {}, context = {}) => {
+          return process.databases.mongodb.collection('posts').find({
+            user_id: { $ne: context?.user?._id },
+          });
+        },
+      }
+    };
+    
+    export default getters;
+```

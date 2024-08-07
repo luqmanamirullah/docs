@@ -1,0 +1,108 @@
+---
+title: "Getters"
+---
+
+As the name implies, in a Joystick app, a getter is a way to "get" data from a data source. Typically that data source is a database, but could also be a third-party API, a static file, etc. Ultimately, a getter is nothing more than a function being called with some helpful utilities and context added.
+
+#### Getters are HTTP GET routes
+
+While they may not look like it syntactically, behind the scenes, getters are registered as HTTP GET routes via Express (following the pattern `/api/_getters/<getter_name>`).
+
+Getters are organized in your `/api` folder, in sub-directories with names related to the data being retrieved. For example, if we had a collection/table in our database called `books`, we'd want to define a folder like `/api/books`. Inside of that folder, we'd create a file for our getters at `/api/books/getters.js`, exporting an object from that file with all of our book-related getter definitions.
+
+### Defining a Getter
+
+Following the above example, let's define a getter for retrieving some books from our database.
+
+/api/books/getters.js
+
+```js
+const getters = {
+  books: {
+    get: () => {
+      return process.databases.mongodb.collection("books").find().toArray();
+    },
+  },
+};
+
+export default getters;
+```
+
+Above, we've defined a simple getter `books`. To do it, we assign `books` as a key on a parent object containing all of our book-related getters. To that key, we've assigned another object with a single method `get()`: the function on our getter that's responsible for retrieving data.
+
+In this example, we're calling to our database and returning the query result directly from the getter.
+
+## Accessing input and context
+
+When a getter is called (typically via the `get()` method imported from `@joystick.js/ui` or the `api.get()` method passed to a [component's data function](ui/components/data)), `input` can be passed along with the request containing useful information like the ID of a specific item to retrieve, a category, etc.
+
+/api/books/getters.js
+
+```js
+const getters = {
+  books: {
+    get: (input = {}) => {
+      return process.databases.mongodb
+        .collection("books")
+        .find({
+          category: input?.category,
+        })
+        .toArray();
+    },
+  },
+};
+
+export default getters;
+```
+
+If there's any `input` passed with a getter request, Joystick will pass it as the first argument to your `get()` function. Above, we anticipate a `category` being passed in the `input` and utilize it in our database query.
+
+/api/books/getters.js
+
+```js
+const getters = {
+  books: {
+    get: (input = {}, context = {}) => {
+      return process.databases.mongodb
+        .collection("books")
+        .find({
+          category: input?.category,
+          user_id: context?.user?._id,
+        })
+        .toArray();
+    },
+  },
+};
+
+export default getters;
+```
+
+In addition to `input`, as the second argument to your getter's `get()` function, a `context` object is passed with a few different sub-fields:
+
+- `req` the inbound HTTP request related to the getter request.
+- `user` if available, the currently logged in user.
+- `<database_provider>` a connection to the database driver for one of your app's configured database providers (e.g., `context.mongodb` or `context.postgresql`).
+
+Above, as an example, we've referenced the currently logged in user's `_id` field (if our [user's database provider](databases/users) was a SQL database like PostgreSQL, we'd reference `context.user.user_id`) on the `context` object.
+
+## API Reference
+
+### get()
+
+#### Function API
+
+Function API
+
+```js
+    get(input: object, context: object) => any;
+```
+
+#### Arguments
+
+- input object
+
+  If passed from the client, the `input` value for the getter request. If nothing is passed, value will be `{}`.
+
+- context object
+
+  The `context` object automatically passed by Joystick containing the inbound HTTP `req` object and `user` object (if available).

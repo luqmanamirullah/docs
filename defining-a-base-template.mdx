@@ -1,0 +1,48 @@
+---
+title: "Defining A Base Template"
+---
+
+
+When sending email, all HTML email starts with a base template. A base template is a plain HTML file and a plain CSS file that create a standardized template for sending all emails. For individual emails, we [define templates using Joystick components](node/email/defining-an-email-template). At send time, Joystick "injects" an email template into a base template. Base templates are similar to Joystick layout components in that they're intended to include elements and styles common to all emails (e.g., a header, a footer, etc).
+
+By default, Joystick anticipates a base HTML template at `/email/base.html` and a base CSS template at `/email/base.css` (an example for both is generated when you run `joystick create <app_name>`).
+
+/email/base.html
+
+```html
+    <html>
+      <head>
+        <title>${subject}</title>
+        ${css}
+      </head>
+      <body>
+        <span class="preheader">${preheader}</span>
+        <div id="email"></div>
+      </body>
+    </html>
+```    
+
+A base HTML template has a few required tags:
+
+*   `${subject}` is populated with the `subject` value that you pass to `email.send()` when sending an email.
+*   `${css}` is where Joystick will output the CSS styles pulled from your email template components (and any child components they might render).
+*   `${preheader}` is populated with the `preheader` value passed to `email.send()` if it's defined (this is the text that will show as the preview text for an email in a user's inbox).
+*   `<div id="email"></div>` where Joystick will inject the rendered HTML for your email template.
+
+Beyond this, a base HTML template can contain any HTML you'd like.
+
+## Custom Base Templates
+
+While it's recommended that you stick to a single base template, in some cases, multiple base templates can be helpful for separating things like marketing emails from transactional emails. To support this, Joystick allows you to define custom base HTML and CSS templates following the convention of `base_<custom_template_name>.html` and `base_<custom_template_name>.css`.
+
+The same rules apply in respect to required tags inside of your templates, but they can contain any other HTML or CSS you want. To use a custom base HTML template, when calling `email.send()` we pass the `base` parameter set to the value of `<custom_template_name>` in the examples above.
+
+So, if we had a file like `base_marketing.html` (with a `base_marketing.css` file), we'd call to `email.send()` with something like this:
+
+```js
+    email.send({
+      base: 'marketing',
+    });
+    ```
+
+If the `base` property is omitted at send time, Joystick will fallback to the default `base.html` and `base.css` file defined in our `/email` folder.

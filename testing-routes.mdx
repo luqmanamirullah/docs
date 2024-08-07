@@ -1,0 +1,286 @@
+---
+title: "Testing Routes"
+---
+
+# Testing Routes
+
+Depending on the nature of your app, it can be helpful to author tests for individual routes (e.g., if you're offering a public API and want to test responses). To facilitate this, `@joystick.js/test` includes the `test.routes` object, containing methods for each of Joystick's supported HTTP methods.
+
+- `test.routes.get()` performs an HTTP GET request.
+- `test.routes.delete()` performs an HTTP DELETE request.
+- `test.routes.patch()` performs an HTTP PATCH request.
+- `test.routes.post()` performs an HTTP POST request.
+- `test.routes.put()` performs an HTTP PUT request.
+
+/tests/index.server.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the /api/books route returns books', async (assert = {}) => {
+      const response = await test.routes.get('/api/books');
+      assert.is(response?.body?.books?.length === 25, true);
+    });
+
+Above, we create a mock test leveraging the `test.routes.get()` method, performing an HTTP GET request to the `/api/books` endpoint in our route. We assume that this endpoint will return us an array of 25 books and write our assertion to verify this.
+
+## Passing a body
+
+To pass a body with your request (assuming you're performing an HTTP request other than a `GET`), utilize the `body` field on the options object passed to your `test.routes` method:
+
+/tests/index.server.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the /api/books route returns books', async (assert = {}) => {
+      const response = await test.routes.post('/api/books', {
+        body: {
+          title: 'Tough and Competent',
+          author: 'Gene Kranz',
+        },
+      });
+
+      await existing_book = await process.databases.mongodb.collection('books').findOne({
+        title: 'Tough and Competent',
+      });
+
+      assert.is(existing_book && existing_book?.author === 'Gene Kranz', true);
+    });
+
+Above, we run a `.post()` request to the `/api/books` route in our app, passing a `body` with a `title` and `author` for a book we'd like to create. To verify that the route worked as expected (hypothetically, we're assuming it will perform a database insert behind the scenes), we check our database for a book with the `title` we passed via the body.
+
+## Passing headers
+
+If you need to test a route that relies on custom HTTP headers, you can pass a `headers` object in the options object passed to your `test.routes` method:
+
+/tests/index.server.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the /api/books route returns books', async (assert = {}) => {
+      const response = await test.routes.post('/api/books', {
+        headers: {
+          'x-api-key': 'abc1234567890',
+        },
+        body: {
+          title: 'Tough and Competent',
+          author: 'Gene Kranz',
+        },
+      });
+
+      await existing_book = await process.databases.mongodb.collection('books').findOne({
+        title: 'Tough and Competent',
+      });
+
+      assert.is(existing_book && existing_book?.author === 'Gene Kranz', true);
+    });
+
+Above, we run a `.post()` request to the `/api/books` route in our app, passing a `body` with a `title` and `author` for a book we'd like to create and an `x-api-key` header with an API key that we assume our API will require in order to create our book. To verify that the route worked as expected (hypothetically, we're assuming it will perform a database insert behind the scenes), we check our database for a book with the `title` we passed via the body.
+
+## Passing query params
+
+If you need to test a route that relies on query params, you can pass a `query` object in the options object passed to your `test.routes` method:
+
+/tests/index.server.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the /api/books route returns books', async (assert = {}) => {
+      const response = await test.routes.get('/api/books', {
+        query: {
+          limit: 10,
+        }
+      });
+
+      assert.is(response?.body?.books?.length === 10, true);
+    });
+
+Above we pass a `limit` query param via the `query` object passed to our `test.routes.get()` method's options object. To verify the query param was respected, we check that length of the `books` array in the response body matches the passed `limit` query parameter.
+
+## Adding a user
+
+If the route your testing calls for it, a `user` object can be passed along with the request being made.
+
+/tests/index.server.js
+
+    import test from '@joystick.js/test';
+
+    test.that('the /api/books route returns books', async (assert = {}) => {
+      const user = await test.accounts.signup({
+        email_address: 'example@test.com',
+        password: 'password',
+      });
+
+      const response = await test.routes.get('/api/books', {
+        user
+      });
+
+      assert.is(response?.body?.books?.length === 25, true);
+    });
+
+## Function API
+
+### test.routes.get()
+
+#### Function API
+
+Function API
+
+    test.routes.get(route: string, options: object) => Promise;
+
+#### Arguments
+
+- route string Required
+
+  The route to perform an HTTP GET request to.
+
+- options object
+
+  The options for the HTTP GET request.
+
+  - headers object
+
+    An object defining the HTTP headers to pass with the request.
+
+  - query object
+
+    An object defining query parameters to pass with the request.
+
+  - user object
+
+    A `user` object returned from a call to `test.accounts.signup()`.
+
+### test.routes.delete()
+
+#### Function API
+
+Function API
+
+    test.routes.delete(route: string, options: object) => Promise;
+
+#### Arguments
+
+- route string Required
+
+  The route to perform an HTTP DELETE request to.
+
+- options object
+
+  The options for the HTTP DELETE request.
+
+  - body object
+
+    An object defining the HTTP body to pass with the request.
+
+  - headers object
+
+    An object defining the HTTP headers to pass with the request.
+
+  - query object
+
+    An object defining query parameters to pass with the request.
+
+  - user object
+
+    A `user` object returned from a call to `test.accounts.signup()`.
+
+### test.routes.patch()
+
+#### Function API
+
+Function API
+
+    test.routes.patch(route: string, options: object) => Promise;
+
+#### Arguments
+
+- route string Required
+
+  The route to perform an HTTP PATCH request to.
+
+- options object
+
+  The options for the HTTP PATCH request.
+
+  - body object
+
+    An object defining the HTTP body to pass with the request.
+
+  - headers object
+
+    An object defining the HTTP headers to pass with the request.
+
+  - query object
+
+    An object defining query parameters to pass with the request.
+
+  - user object
+
+    A `user` object returned from a call to `test.accounts.signup()`.
+
+### test.routes.post()
+
+#### Function API
+
+Function API
+
+    test.routes.post(route: string, options: object) => Promise;
+
+#### Arguments
+
+- route string Required
+
+  The route to perform an HTTP POST request to.
+
+- options object
+
+  The options for the HTTP POST request.
+
+  - body object
+
+    An object defining the HTTP body to pass with the request.
+
+  - headers object
+
+    An object defining the HTTP headers to pass with the request.
+
+  - query object
+
+    An object defining query parameters to pass with the request.
+
+  - user object
+
+    A `user` object returned from a call to `test.accounts.signup()`.
+
+### test.routes.put()
+
+#### Function API
+
+Function API
+
+    test.routes.put(route: string, options: object) => Promise;
+
+#### Arguments
+
+- route string Required
+
+  The route to perform an HTTP PUT request to.
+
+- options object
+
+  The options for the HTTP PUT request.
+
+  - body object
+
+    An object defining the HTTP body to pass with the request.
+
+  - headers object
+
+    An object defining the HTTP headers to pass with the request.
+
+  - query object
+
+    An object defining query parameters to pass with the request.
+
+  - user object
+
+    A `user` object returned from a call to `test.accounts.signup()`.

@@ -1,0 +1,159 @@
+---
+title: "Component Types"
+---
+
+# Component Types
+
+While there is a single way to define a component in a Joystick app (via `joystick.component()`), a Joystick component can serve one of a few different purposes:
+
+1.  It can serve as a `page` component, or, a component whose purpose is to be rendered directly by a route.
+2.  It can serve as a `layout` component, or, a component whose purpose is to include static elements (like a navigation or footer) while rendering a dynamic `page` component.
+3.  It can serve as a generic Joystick component whose purpose is to be composed into other components.
+4.  It can serve as an email template.
+
+## Page Components
+
+A `page` component is any component defined in the `/ui/pages` folder with the intent of being rendered via a route. A `page` component is rendered via a route's `res.render()` method, having its path passed as the first argument like this:
+
+Example Page Component Render
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      '/': (req, res) => {
+        res.render('ui/pages/index/index.js');
+      }
+    });
+```
+## Layout Components
+
+A `layout` component is any component defined in the `/ui/layouts` folder with the intent of being rendered via a route. A `layout` component is rendered via a route's `res.render()` method, having its path passed via the `layout` option on the `res.render()` option's object like this:
+
+Example Page Component Render
+
+```js
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      '/': (req, res) => {
+        res.render('ui/pages/index/index.js', {
+          layout: 'ui/layouts/app/index.js',
+        });
+      }
+    });
+```
+The idea here is that the `page` passed as the first argument will be rendered into the `layout` at `ui/layouts/app/index.js`. Behind the scenes, `res.render()` will automatically map the `page` component at the `ui/pages/index/index.js` path passed as its first argument to the `props.page` value of `ui/layouts/app/index.js`.
+
+/ui/layouts/app/index.js
+
+```js
+    import joystick from "@joystick.js/ui";
+
+    const App = joystick.component({
+      render: ({ props, component }) => {
+        return `
+          <div>
+            ${component(props.page, props)}
+          </div>
+        `;
+      },
+    });
+
+    export default App;
+```
+Inside of our layout component, we can decide where our page will be rendered by passing `props.page` to the [component() render method](ui/components/render/render-methods/component) destructured from the layout component's instance passed to `render()`.
+
+## Generic Components
+
+Like their name suggests, generic components don't serve a specific purpose like a `page` or `layout` component. Instead, generic components—located at `/ui/components`—are intended to be composed or rendered _into_ other generic components, or, other `page` or `layout` components. For example, consider a generic component like `/ui/components/navigation/index.js` below being composed into a `layout` component:
+
+/ui/components/navigation/index.js
+
+```js
+    import joystick from "@joystick.js/ui";
+
+    const Navigation = joystick.component({
+      wrapper: {
+        tag_name: 'nav',
+      },
+      css: `
+        ul li a {
+          color: #aaa;
+        }
+
+        ul li.is-active a {
+          color: blue;
+        }
+      `,
+      render: ({ url }) => {
+        return `
+          <ul>
+            <li class="${url.is_active('/') ? 'is-active' : ''}">
+              <a href="/">Home</a>
+            </li>
+          </ul>
+        `;
+      },
+    });
+
+    export default Navigation;
+```
+Above, we have a generic `ui/components/navigation/index.js` component which can be rendered into `ui/layouts/app/index.js`:
+
+/ui/layouts/app/index.js
+
+```js
+    import joystick from "@joystick.js/ui";
+    import Navigation from '../../components/navigation/index.js';
+
+    const App = joystick.component({
+      render: ({ props, component }) => {
+        return `
+          <div>
+            ${component(Navigation)}
+            ${component(props.page, props)}
+          </div>
+        `;
+      },
+    });
+
+    export default App;
+```
+Here, we expect the `Navigation` component to be rendered alongside the dynamic `page` passed to us via `props` from `res.render()`.
+
+## Email Components
+
+To avoid the introduction of additional templating languages (or inflexible, static HTML files), Joystick components can be used as email templates, too. All email template components live at `/email` in your app (e.g., `/email/onboarding.js`). An email component is utilized by passing it as the `template` option to `email.send()` when sending an email:
+
+```js
+    import { email } from '@joystick.js/node';
+
+    email.send({
+      to: 'example@test.com',
+      from: 'admin@app.com',
+      subject: 'Welcome aboard!',
+      template: 'onboarding',
+      props: {
+        username: 'new_user_123',
+      },
+    });
+
+    ```
+Joystick will automatically search for an email template component at `/email/onboarding.js` in our app. Assuming it finds one, it will render that component to HTML and CSS, passing the `props` we specified in our `email.send()` options:
+
+/email/onboarding.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Onboarding = joystick.component({
+      render: ({ props }) => {
+        return `
+          <p>Hey, @${props.username}!</p>
+          <p>Thank you for signing up to use our app. To get started, login to the app via the link below:</p>
+          <p><a href="https://myapp.com/start">Get Started</a></p>
+        `;
+      },
+    })
+    ```

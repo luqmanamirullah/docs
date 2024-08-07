@@ -1,0 +1,53 @@
+---
+title: "Methods"
+---
+
+# Methods
+
+As your components logic grows in complexity, it can be helpful to store more-verbose logic and reusable logic into methods. To help with this, Joystick components over a simple API for defining miscellaneous/arbitrary methods that are accessible globally on the component instance:
+
+/ui/pages/index/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Index = joystick.component({
+      methods: {
+        reverse_name: (name = '', instance = {}) => {
+          return name?.split('')?.reverse()?.join('');
+        },
+      },
+      events: {
+        'click .reverse-name': (event = {}, instance = {}) => {
+          const name = instance.DOMNode.querySelector('[name="name"]');
+          const reversed_name = instance.methods.reverse_name(name.value);
+          name.value = reversed_name;
+        },
+      },
+      render: () => {
+        return `
+          <div>
+            <form>
+              <label>Name</label>
+              <input type="text" name="name" placeholder="Name" />
+              <button class="reverse-name">Reverse</button>
+            </form>
+          </div>
+        `;
+      },
+    });
+
+    export default Index;
+
+Above, we've defined an arbitrary method via the `methods` object defined on our component instance options. On that object, we've created a method `reverse_name` which we expect to receive a `name` as a `string`.
+
+Behind the scenes, when Joystick receives a call to the `reverse_name` method, it first passes any argument passed to the method call and finally, the component instance. Here, we've only passed a single argument to `reverse_name()` when we call it (`name.value`), so inside of its definition, we get `name` as the first argument and the component `instance` as the second argument.
+
+Methods can include any logic you'd like. There is no expectation of a return value or any other behavior beyond what an individual method requires (as you define).
+
+## API Reference
+
+Object API
+
+    methods: {
+      method_name: ([...args], instance: object) => void;
+    };

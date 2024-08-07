@@ -1,0 +1,83 @@
+---
+title: "Creating Fixture Data"
+---
+
+# Creating Fixture Data
+
+To help us get up to speed with handling data, now, we're going to use Joystick's built-in [fixture()](node/fixtures) function to help us generate some test data.
+
+A fixture is a script for helping us to dynamically generate data following a template. Via the `fixture()` function imported from `@joystick.js/node`, we can generate a batch of data and then arbitrarily target a database to receive our data.
+
+In your app, we'll want to create a file at `/fixtures/books.js` (`/fixtures` is one of Joystick's [supported directories](getting-started-tutorial/file-structure#directories)):
+
+/fixtures/books.js
+
+    import joystick, { fixture } from '@joystick.js/node';
+    import { faker } from '@faker-js/faker';
+
+    const books_fixture = fixture({
+      target: 'books',
+      quantity: 10,
+      template: () => {
+        return {
+          _id: joystick.id(),
+          status: 'unread',
+          title: faker.lorem.words(4),
+          author: faker.person.fullName(),
+        };
+      },
+      skip: async (fixture = {}) => {
+        const total_books = await process.databases.mongodb.collection('books').countDocuments();
+
+        /* PostgreSQL: Assumes a table/schema of books(id int4, status text, book_id text, title text).
+          const [{ count: total_books }] = await process.databases.postgresql.query(`SELECT count(id)::int as total_books from books`); */
+
+        return total_books >= fixture.options.quantity;
+      },
+      on_create: async (fixture = {}, data_to_create = []) => {
+        await process.databases.mongodb.collection('books').bulkWrite(
+          data_to_create.map((book) => {
+            return { insertOne: book };
+          })
+        );
+
+        /* PostgreSQL
+           for (let i = 0; i < data_to_create.length; i += 1) {
+             const book = data_to_create[i];
+             await process.databases.postgresql.query('INSERT INTO books (book_id, status, title, author) VALUES ($1, $2, $3, $4)', [book._id, book.status, book.title, book.author]);
+           }
+        */
+      },
+    });
+
+    export default books_fixture;
+
+Above, using the `fixture()` function imported from `@joystick.js/node`, we're creating `10` "dummy" books to insert into our database. To generate those `10` books, to our `fixture()` function's options object, we pass:
+
+- `target: 'books'` where `books` is the name of the collection/table we want to insert our data into.
+- `quantity: 10` where `10` is the number of iterations of the `template` function we want to run.
+- `template` a function which returns the data to generate for each iteration of `quantity` as an `object`.
+
+Inside of `template` we return an object representing the template for each of the `10` books we'll generate. To help generate some fake data, here, we're using the package `@faker-js/faker` which offers an assortment of APIs for generating fake data. Make sure you've installed this in your project via the command line with:
+
+Terminal
+
+    npm i @faker-js/faker
+
+Beneath this, we've defined a `skip` function which retrieves the current number of documents in our `books` collection and then returns a boolean `true` if the `total_books` in the database is `>=` (greater-than-or-equal) to our pre-defined quantity (i.e., if we've already generated the data, skip running this fixture). Alternatively, an example for a PostgreSQL count is provided beneath this (commented out).
+
+Finally we've defined an `on_create` function which receives our `fixture` instance and `data_to_create`: an array containing the `10` objects we generated via our `template` function. Inside, we utilize MongoDB's `bulkWrite` method on our `books` collection to insert all `10` books at once. Alternatively, an example for a PostgreSQL insert is provided beneath this (commented out).
+
+This is all we need for now. We'll see how to put this to use in our next lesson where we'll define our app server.
+
+[](getting-started-tutorial/adding-a-database)
+
+#### Previous
+
+Adding a Database
+
+[](getting-started-tutorial/defining-a-server)
+
+#### Next
+
+Defining a Server

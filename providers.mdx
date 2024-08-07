@@ -1,0 +1,20 @@
+---
+title: "Providers"
+---
+
+# Providers
+
+While most apps tend to focus on utilizing a single database, in modern apps, it's wise to use databases on a "best tool for the job" basis. To walk in step with this idea, Joystick is designed to work with multiple databases, simultaneously, out of the box.
+
+Instead of forcing you to compromise, Joystick let's you connect multiple databases from different providers to the same app. So, for example, you can use a MongoDB database for frequently-changed data like user profiles, user generated content, etc., or, PostgreSQL for infrequently-changed data, side-by-side.
+
+To do it, in a `development` environment, Joystick automatically starts up local servers for the databases you specify in your app's `settings.<env>.json` file. Behind the scenes, when your app is started, Joystick then maps these database connections to the `process.databases` object in your app.
+
+So, if you decide to run MongoDB and PostgreSQL at the same time, in your app's code, you would access MongoDB via `process.databases.mongodb` and PostgreSQL via `process.databases.postgresql`.
+
+Currently, Joystick supports the following database providers and features:
+
+| Database | Provider ID | Autostart via CLI | Node.js Driver | User Accounts | Queues | Sessions |
+| --- | --- | --- | --- | --- | --- | --- |
+| MongoDB | `mongodb` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PostgreSQL | `postgresql` | ✅ | ✅ | ✅ | ✅ | ✅ |

@@ -1,0 +1,85 @@
+---
+title: "Internationalization (I18n)"
+---
+
+# Internationalization (i18n)
+
+As your app grows, it's wise to internationalize your UI (offer translations for other languages). To help with this, Joystick supports built-in translation support for pages rendered via the [res.render()](node/routes/res-render) method.
+
+## Storing translations
+
+Translation files should be stored in the `/i18n` folder at the root of your app. Files should be named using a combination of the ISO-693 language code with the ISO-3166 country code (e.g., `en-US.js`, `de-DE.js`, `es-ES.js`, or `ja-JP.js`). This format is used because it matches [the standard used by browsers](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/language).
+
+An example `/i18n` folder might look like this:
+
+    /i18n
+    -- de-DE.js
+    -- en-GB.js
+    -- en-US.js
+    -- es-ES.js
+    -- jp-JP.js
+
+Above, we have translations for `German`, `English (Great Britain)`, `English (United States)`, `Spanish`, and `Japanese`.
+
+## Loading translations
+
+When you render a page via `res.render()`, Joystick will try to find a matching language file based on the following preference order:
+
+1.  The current user's (if available) `language` field value.
+2.  The browser's `navigator.language` value.
+3.  The `config.i18n.default_language` (alias: `config.i18n.defaultLanguage`) value.
+
+If there's a matching language file in the `/i18n` folder at the root of your app, that file will be loaded.
+
+## Matching based on page path
+
+After a language match is found, inside of a language file, Joystick will attempt to match a value on the object exported by the language file matching the path of the page being rendered. For example, if we have a call to `res.render()` like this:
+
+    res.render('ui/pages/profile/index.js');
+
+Joystick will try to find something like this in the matching language file:
+
+    const en_US = {
+      'ui/pages/profile/index.js': {
+        title: 'The Killer App the Internet Always Wanted'
+      },
+    };
+
+    export default en_US;
+
+If there's a match, Joystick will only load the translations stored in the value of that key, ignoring the rest of the translation file. In the event that a matching path _cannot_ be found, Joystick will fallback to loading the entire translation file.
+
+## Accessing translations
+
+Once a translation file is found, either the subset matching the page path or the entire translation file's contents are mapped over to the `window.__joystick_i18n__` value. Internally, `@joystick.js/ui` looks for this value at mount time and loads it into the `i18n` value for all components in the current tree.
+
+Inside of a component, then, we can do something like this:
+
+/ui/pages/profile/index.js
+
+    import joystick from '@joystick.js/ui';
+
+    const Profile = joystick.component({
+      css: { ... },
+      render: ({ i18n }) => {
+        return `
+          <div class="page-profile">
+            <div class="masthead">
+              <h1>${i18n('title')}</h1>
+            </div>
+          </div>
+        `;
+      },
+    });
+
+    export default Profile;
+
+In the example above, because our example language file in the previous section had a matching page path for `/ui/pages/profile/index.js`, we expect the value of that key in the language file to be loaded in the browser. Using the [`i18n()` render method](ui/components/render/render-methods/i18n), we pass the name of a key that we want to obtain the translation for _relative_ to that file.
+
+When the above component is rendered, we'd expect to get back some HTML looking like this:
+
+    <div class="page-profile">
+      <div class="masthead">
+        <h1>The Killer App the Internet Always Wanted</h1>
+      </div>
+    </div>

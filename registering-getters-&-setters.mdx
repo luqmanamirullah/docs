@@ -1,0 +1,30 @@
+---
+title: "Registering Getters & Setters"
+---
+
+
+In order for getter and setter endpoints to function in your app, they need to be registered via your app's API schema (located at `/api/index.js`).
+
+/api/index.js
+
+```js
+    import book_getters from './books/getters.js';
+    import book_setters from './books/setters.js';
+    
+    const api = {
+      getters: {
+        ...book_getters,
+      },
+      setters: {
+        ...book_setters,
+      }
+    };
+    
+    export default api;
+```    
+
+The recommended pattern for defining getters and setters is to follow a folder structure like `/api/<topic>/getters.js` or `/api/<topic>/setters.js`. From those files, we assume that the default export of an object containing all of the getters or setters for a topic will be available.
+
+Importing these files into your API schema at `/api/index.js`, we can register these by passing their contents to the appropriate group under the `api` object exported from `/api/index.js`.
+
+Above, we import our `book_getters` object from `/api/books/getters.js` and then use the JavaScript spread `...` syntax to "unpack" the object we anticipate being exported from that file on to the `api.getters` object. Conversely, we follow the exact same process for our setters, "unpacking" our imported `book_setters` on to the `api.setters` object.

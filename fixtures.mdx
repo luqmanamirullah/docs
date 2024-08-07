@@ -1,0 +1,139 @@
+---
+title: "Fixtures"
+---
+
+
+How to use the `fixture()` function create test data for your app.
+
+To create test data for your app, Joystick includes a function exported as a named export from `@joystick.js/node` as `fixture`. The `fixture` function itself returns another function you can call via the `fixtures` function assigned to the options you pass to `joystick.app()` in your `index.server.js` file.
+
+## Defining a fixture
+
+Fixtures should be defined in the `/fixtures` folder at the root of your app. Inside of that folder, a file should be created for each fixture in your app with a name describing the target (e.g., a collection name in a MongoDB database or a table name in a PostgreSQL database like `/fixtures/books.js`).
+
+Example fixture at /fixtures/books.js
+
+```js
+    import joystick, { fixture } from "@joystick.js/node";
+    import { faker } from '@faker-js/faker';
+    import random_book_title '../lib/random_book.js';
+
+    const books = fixture({
+      target: "books",
+      quantity: 25,
+      template: (fixture = {}, index = 0, input = {}) => {
+        return {
+          _id: joystick.id(),
+          title: random_book_title(),
+          author: faker.person.fullName(),
+        };
+      },
+      skip: async (fixture = {}, input = {}) => {
+        const total = await process.databases.mongodb.collection(fixture?.options?.target).countDocuments({});
+        return total >= fixture?.options?.quantity;
+      },
+      on_create: async (
+        fixture = {},
+        data_to_create = [],
+        on_after_create_each = null,
+      ) => {
+        await process.databases.mongodb.collection(fixture?.options?.target).bulkWrite(
+          data_to_create.map((book) => {
+            return {
+              insertOne: book,
+            };
+          })
+        );
+      },
+      on_after_create_all: (fixture = {}, data_to_create = [], input = {}) => {
+        console.log(`Fixture created ${data_to_create.length} books.`);
+      },
+    });
+
+    export default books;
+```
+## Calling a fixture
+
+To call a fixture, import it into your `index.server.js` file and then call the function returned by `fixture` inside of the function you pass to `fixtures` in your `joystick.app()` options:
+
+index.server.js
+
+```js
+    import joystick from "@joystick.js/node";
+    import books_fixture from './fixtures/books.js';
+
+    joystick.app({
+      fixtures: () => {
+        books_fixture();
+      },
+      routes: { ... }
+    });
+
+    ```
+When your app starts, after a connection has been established to each of your databases, Joystick will call the `fixtures()` function passed to `joystick.app()` above, triggering a run of any fixtures called within it.
+
+## API Reference
+
+`fixture()` receives a single `options` argument as an `object` and returns a `function` that can be called to execute the fixture.
+
+### fixture()
+
+#### Function API
+
+Function API
+
+    fixture(options: object) => function;
+
+#### Arguments
+
+- target object Required
+
+  A string containing the name of the intended target for the data (e.g., a MongoDB collection name or PostgreSQL table name).
+
+- quantity integer Required
+
+  How many copies of the fixture template to generate.
+
+- template function Required
+
+  A function returning the data to create (e.g., an object of key/value pairs). Receives the `fixture_instance`, `index` for the current iteration, and any `input` provided when the fixture was invoked.
+
+  Function API
+
+      template(fixture_instance: object, index: integer, input: object) => any;
+
+- skip function
+
+  A function returning a boolean `true` or `false` that determines whether or not the fixture should run. Receives the `fixture_instance` and any `input` provided when the fixture was invoked.
+
+  Function API
+
+      skip(fixture_instance: object, input: object) => boolean;
+
+- on_create (alias: onCreate) function Required
+
+  A function that is called after the `template` function has been invoked `quantity` times. Receives the `fixture_instance`, an array `data_to_create` containing the result of invoking the `template` function `quantity` times, and if defined in the fixture options, a function to call `on_after_create_each` after each of `data_to_create` is created (e.g., after each insert into your database).
+
+  Function API
+
+      on_create(fixture_instance: object, data_to_create: array, on_after_create_each: function) => undefined;
+
+- on_after_create_each (alias: onAfterCreateEach) function
+
+  A function that's passed to `on_create` that can be called after each of `data_to_create` is created. Helpful for triggering additional fixtures or code that depend on the result of data created in the current fixture (e.g., an ID to create a relationship from).
+
+  Receives the `fixture_instance`, any input passed to the function when it's called `on_after_create_each_input`, and the original `input` from when the fixture was invoked.
+
+  Function API
+
+      on_after_create_each(fixture_instance: object, on_after_create_each_input: object, input: object) => undefined;
+
+- on_after_create_all (alias: onAfterCreateAll) function
+
+  If defined in your fixture options, a function that's automatically called after `on_create` returns. Helpful for triggering additional fixtures or code that depend on the result of data created in the current fixture (e.g., the IDs of the data created to create relationships from).
+
+  Receives the `fixture_instance`, the `data_to_create` generated via your `template`, and the original `input` from when the fixture was invoked.
+
+  Function API
+
+      on_after_create_all(fixture_instance: object, data_to_create: array, input: object) => undefined;
