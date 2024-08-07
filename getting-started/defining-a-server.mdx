@@ -1,0 +1,72 @@
+---
+title: "Defining A Server"
+---
+
+To add real-time data to your app, Joystick supports the creation of WebSocket servers via the `websockets` property on the options object passed to `joystick.app()`.
+
+/index.server.js
+
+```javascript
+
+    import joystick from '@joystick.js/node';
+
+    joystick.app({
+      websockets: {
+        example_endpoint: {
+          on_open: (connection = {}) => {
+            // Handle connection open event...
+          },
+          on_message: (message = {}, connection = {}) => {
+            // Handle an inbound client message...
+          },
+          on_close: (code = 0, reason = '', connection = {}) => {
+            // Handle a client close event...
+          },
+        },
+      },
+      routes: { ... }
+    });
+```
+
+Above, we set `websockets` to an object with all of our WebSocket server definitions. To define a server, we add a key/value pair to the `websockets` object where the `key` is the name of the WebSocket server/endpoint to establish and the value is an object containing methods for handling `open` events, client `message`s, and `close` events.
+
+Behind the scenes, Joystick automatically handles the wiring to establish your server and make it accessible to clients (a WebSocket route is automatically established at `ws://localhost:2600/api/_websockets/example_endpoint` in `development` or `wss://domain.com/api/_websockets/example_endpoint` in non-development environments).
+
+Once your WebSocket server is established, you can [connect to it directly from a Joystick component](ui/components/websockets).
+
+## API Reference
+
+### WebSocket Definition API
+
+WebSocket Definition API
+
+```javascript
+
+    {
+      websockets: {
+        [websocket_endpoint: string]: {
+          on_open: (connection: object) => void,
+          on_message: (message: object, connection: object) => void,
+          on_close: (code: integer, reason: string, connection: object) => void,
+        }
+      }
+    }
+```
+
+#### Properties
+
+- websocket_endpoint object Required
+
+  The WebSocket server definition.
+
+  - on_open function
+
+    A function called when a WebSocket client connects to the `websocket_endpoint`.
+
+  - on_message function
+
+    A function called when a WebSocket client sends a message to the `websocket_endpoint`.
+
+  - on_close function
+
+    A function called when a WebSocket client disconnects from the `websocket_endpoint`.

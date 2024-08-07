@@ -1,0 +1,18 @@
+---
+title: "Environment Settings"
+---
+
+Environment settings can be accessed in components via the default `joystick` export from `@joystick.js/ui` at `joystick.settings`. In a client-side environment, only `joystick.settings.public` and `joystick.settings.global` are exposed—`joystick.settings.private` is intentionally excluded for the sake of security.
+
+/ui/pages/index/index.js
+
+```javascript
+import joystick from "@joystick.js/ui";
+
+console.log(joystick.settings);
+// { global: { ... }, public: { ... } }
+```
+
+## Node Process Polyfill
+
+In addition to your app's environment settings, a polyfill is provided in browsers for the Node.js `process` object in order to provide access to `process.env.NODE_ENV`. This polyfill is made accessible globally at `window.process`, or just `process`.

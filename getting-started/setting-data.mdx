@@ -1,0 +1,251 @@
+---
+title: "Setting Data"
+---
+
+To close the loop on working with data in Joystick, now, let's wire up a form to change or "set" data in our database. We're going to add one more page component at `/ui/pages/edit_book/index.js`, this time with a form that we'll use to make changes to our existing books.
+
+Before we do, though, we're going to add an additional getter to our API for retrieving a single book.
+
+/api/books/getters.js
+```javascript
+    const getters = {
+      books: {
+        get: () => {
+          return process.databases.mongodb.collection('books').find().toArray();
+          // PostgreSQL
+          // return process.databases.postgresql.query(`SELECT * FROM books`);
+        },
+      },
+      book: {
+        input: {
+          book_id: {
+            type: 'string',
+            required: true,
+          }
+        },
+        get: (input = {}) => {
+          return process.databases.mongodb.collection('books').findOne({
+            _id: input.book_id,
+          });
+
+          /* PostgreSQL
+             const [book] process.databases.postgresql.query(`SELECT * FROM books WHERE book_id = $1`, [
+               input.book_id
+             ]);
+
+             return book;
+          */
+        },
+      },
+    };
+
+    export default getters;
+    ```
+
+Here, we're following an identical approach to our first getter, `books`, however this time we've added an `input` schema alongside of our `get()` function. Remember, when we defined our `update_book` setter earlier, we introduced [an input validator](getting-started-tutorial/defining-a-setter) to ensure the data we're being passed from the client is what we expect. Here, we do the same, however this time we're only concerned with the ID of the book we're trying to edit being passed as `book_id`.
+
+If we have it, similar to what we saw in our `books` getter, we make a call to our database to find a book with an `_id` (or, for PostgreSQL, `book_id`) matching `input.book_id`.
+
+## Wiring up an edit form
+
+Next, with our getter, we're ready to wire up a page where we can edit our book. We're going to create this at `/ui/pages/edit_book/index.js`:
+
+/ui/pages/edit_book/index.js
+
+```javascript
+    import joystick from "@joystick.js/ui";
+
+    const EditBook = joystick.component({
+      data: async (api = {}, req = {}) => {
+        return {
+          book: await api.get('book', {
+            input: {
+              book_id: req?.params?.book_id,
+            }
+          })
+        };
+      },
+      css: `
+        .form-field {
+          margin-bottom: 5px;
+        }
+
+        .form-field label {
+          display: block;
+        }
+
+        form button {
+          display: block;
+          margin-top: 20px;
+        }
+      `,
+      render: ({ data }) => {
+        return `
+          <h2>Edit Book</h2>
+          <form>
+            <div class="form-field">
+              <label>Title</label>
+              <input type="text" name="title" placeholder="Book Title" value="${data.book.title}" />
+            </div>
+            <div class="form-field">
+              <label>Author</label>
+              <input type="text" name="author" placeholder="Book Author" value="${data.book.author}" />
+            </div>
+            <div class="form-field">
+              <label>Status</label>
+              <select name="status" value="${data.book.status}">
+                <option value="unread" ${data.book.status === 'unread' ? 'selected' : ''}>Unread</option>
+                <option value="read" ${data.book.status === 'read' ? 'selected' : ''}>Read</option>
+              </select>
+            </div>
+            <button type="submit">Save Changes</button>
+          </form>
+        `;
+      },
+    });
+
+    export default EditBook;
+
+```
+Above, we're creating a component that renders an HTML form we can use to edit an existing book. If we look close, what we're doing here is fetching or "getting" the book from our database first (we'll wire up a separate getter for this next), calling to the `book` getter we just defined. What's different from the `api.get()` call we did in `/ui/pages/books/index.js` is that we're passing an `input` field via the options object for our `api.get()` call.
+
+We're also including a second parameter passed to `api.get()`, `req`, or "request." This is the inbound HTTP request (sanitized for use in the browser) that we receive when this page (`edit_book`) is rendered. On that object, we expect Joystick to provide us with the URL `params` that were a part of the request (URL params are things like `:book_id` in one of our routes—dynamic variables embedded within our URL).
+
+Here, we point to `req.params.book_id` because, as we'll see later, we're going to set up a route on our server at `/books/:book_id/edit` that will render the page we're defining above.
+
+With this data, back down in our `render()` function, we're setting the `value` attribute on each of our inputs to the corresponding field's value on the `data.book` response from our getter. The idea being that when we load the page, we'll see the current `title`, `author`, and `status` for the book rendered on screen.
+
+## Handling a call to `set()`
+
+Next, our goal is to call to our setter `update_book` with any changes from our form. To do it, we're going to add in another DOM event listener, this time on the `submit` event for our `<form></form>` tag.
+
+/ui/pages/edit_book/index.js
+
+```javascript
+    import joystick, { set } from "@joystick.js/ui";
+
+    const EditBook = joystick.component({
+      data: async (api = {}, req = {}) => { ... },
+      css: `...`,
+      events: {
+        'submit form': async (event, instance) => {
+          event.preventDefault();
+
+          instance.validate_form(event.target, {
+            rules: {
+              title: {
+                required: true,
+              },
+              author: {
+                required: true,
+              }
+            },
+            messages: {
+              title: {
+                required: 'Title is required.',
+              },
+              author: {
+                required: 'Author is required.',
+              }
+            },
+          }).then(() => {
+            set('update_book', {
+              input: {
+                book_id: instance?.url?.params?.book_id,
+                status: event.target.status.value,
+                title: event.target.title.value,
+                author: event.target.author.value,
+              }
+            }).then(() => {
+              location.reload();
+            });
+          })
+        },
+      },
+      render: ({ data }) => {
+        return `
+          <h2>Edit Book</h2>
+          <form>
+            <div class="form-field">
+              <label>Title</label>
+              <input type="text" name="title" placeholder="Book Title" value="${data.book.title}" />
+            </div>
+            <div class="form-field">
+              <label>Author</label>
+              <input type="text" name="author" placeholder="Book Author" value="${data.book.author}" />
+            </div>
+            <div class="form-field">
+              <label>Status</label>
+              <select name="status" value="${data.book.status}">
+                <option value="unread" ${data.book.status === 'unread' ? 'selected' : ''}>Unread</option>
+                <option value="read" ${data.book.status === 'read' ? 'selected' : ''}>Read</option>
+              </select>
+            </div>
+            <button type="submit">Save Changes</button>
+          </form>
+        `;
+      },
+    });
+
+    export default EditBook;
+    ```
+
+Above, we've added an event listener via the `events` option on our component definition to listen from a `submit` event on our `<form></form>` tag. When this event occurs, first, we want to make sure that we call to `event.preventDefault()` so that the form doesn't submit via the default `action` url (because we're using JavaScript to handle the form submission, we don't want to use this).
+
+Just below this, we're introducing something unique to Joystick components: built-in form validation. When we're dealing with user input, to the best of our abilities, it's important to ensure that the input we get from a user is what we expect.
+
+Here, we call to the `instance.validate_form()` function passing our `event.target` (in this case, our `<form></form>`) as the first argument and then an object that defines the `rules` our user's input must follow along with some error messages to display if they break the rules.
+
+Here, we'll notice that we expect `instance.validate_form()` to return a promise. If a user _fails_ validation, the error `messages` we've defined here will display beneath the corresponding input that failed validation. If they _pass_ validation, the `.then()` callback for the promise will fire.
+
+Inside of that `.then()` callback, we're calling to the `set()` method we've imported as a named function from `@joystick.js/ui` at the top of our file. This `set()` is independent from the `api.set()` we hinted at earlier inside of `data()`. Instead of being a "server safe" `set()`, here, it's intended to only be used on the client (browser).
+
+To use it, similar to our getter, we pass the name of the setter `update_book` as the first argument and then an options object containing the `input` we want to pass. Here, we expect Joystick to provide us access to the current URL (similar to the `req` object inside of `data()`, but here, only the URL information) via `instance.url`. From it, we pull the `params.book_id` and add it to our input, along with all of the form field values for our book.
+
+Because this will return a promise, too, we add a `.then()` callback to say when we get a successful response from the setter, call `location.reload()` to reload the page (we should see the changes we just passed to the server persisting past the page load).
+
+With that, we now have a full pattern for getting and setting data in our Joystick app. To finish up, let's add an extra route for the page we've just defined.
+
+## Adding a route for edit_book
+
+Just like we saw before, we want to add a route to our `routes` object in `/index.server.js`:
+
+/index.server.js
+
+```javascript
+    import joystick from '@joystick.js/node';
+    import api from './api/index.js';
+    import books_fixture from './fixtures/books.js';
+
+    joystick.app({
+      api,
+      fixtures: () => {
+        books_fixture();
+      },
+      routes: {
+        '/': (req = {}, res = {}) => {
+          res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+        '/another-page': (req = {}, res = {}) => {
+          res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+        '/books': (req = {}, res = {}) => {
+          res.render('ui/pages/books/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+        '/books/:book_id/edit': (req = {}, res = {}) => {
+          res.render('ui/pages/edit_book/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+      },
+    });
+    ```
+
+Down at the bottom, just like before, we define our route and assign it a callback function which calls to `res.render()` to render our page component. Of note, notice that we've included the `:book_id` param that we anticipated in our component to our route's URL.
+

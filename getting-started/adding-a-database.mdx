@@ -1,0 +1,70 @@
+---
+title: "Adding A Database"
+---
+
+
+With your preferred databases installed on your computer, adding a database to your app can be done via your `settings.<env>.json` file. In the `config.databases` array, databases can be defined as an object with the following structure:
+
+```json
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "<provider_name>",
+            "users": true,
+            "sessions": true,
+            "queues": true
+          }
+        ],
+        ...
+      },
+      ...
+    }
+```
+    
+
+Above, `<provider_name>` can be swapped with the "Provider ID" for one of Joystick's [supported databases](databases/providers).
+
+The three fields following this (`users`, `sessions`, and `queues`) decide if Joystick should map the data for those features to the database. For most apps, all three will be enabled on the same database, but for advanced or complex apps, it's possible to split those behaviors across multiple databases.
+
+For this tutorial, we're going to enable a single database of your choice either `mongodb` or `postgresql` and all three features. For example, if you choose to use MongoDB, your `settings.development.json` file should look like this:
+
+/settings.development.json
+
+```json
+    
+    {
+      "config": {
+        "databases": [
+          {
+            "provider": "mongodb",
+            "users": true,
+            "sessions": true,
+            "queues": true
+          }
+        ],
+        "i18n": {
+          "default_language": "en-US"
+        },
+        "middleware": {},
+        "email": {
+          "from": "",
+          "smtp": {
+            "host": "",
+            "port": 587,
+            "username": "",
+            "password": ""
+          }
+        }
+      },
+      "global": {},
+      "public": {},
+      "private": {}
+    }
+```
+    
+
+When you start your app via `joystick start`, Joystick will automatically assign your databases to a port starting from `2610`, or, your app's chosen port number plus `10` (e.g., because Joystick's default port is `2600`, if the configuration above had two databases, the first would be on port `2610` and the second would be on `2611` and so on). For example, an app started on port `3000` would find its first database started on port `3010`.
+
+
+

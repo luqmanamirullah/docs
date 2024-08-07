@@ -1,0 +1,32 @@
+---
+title: "Port Occupied"
+---
+
+In some situations, a Joystick app may crash without a successful cleanup of the ports it has occupied (preventing a fresh startup of the app). When this occurs, there are two processes that need to be killed on your machine:
+
+*   The process running on the port your app was started on (default: `2600`).
+*   The process running on the port your app was started on + 1 (default: `2601`).
+
+## Killing the processes on MacOS/Linux
+
+To kill the processes on a MacOS or Linux machine (Unix-based operating systems), from your terminal, run the following to discover the port numbers:
+
+    lsof -i :2600
+    // The PID column contains the process ID to kill.
+    
+
+    lsof -i :2601
+    // The PID column contains the process ID to kill.
+    
+
+With those process IDs (PIDs), run the following:
+
+    kill `<PID_1>` `<PID_2>`
+    
+
+Above `<PID_1>` would be replaced with the PID returned from the first call to `lsof` and `<PID_2>` would be replaced with the PID returned from the second call to `lsof`. For example:
+
+    kill 1234 5678
+    
+
+After the above steps are completed, your Joystick app should start up without any issues.

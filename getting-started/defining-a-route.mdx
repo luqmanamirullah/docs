@@ -1,0 +1,39 @@
+---
+title: "Defining A Route"
+---
+
+# Defining a Route
+
+How to define a basic HTTP GET route.
+
+Routes for your app (URLs that can be accessed by users) are defined via the `routes` property set on the options `object` passed to `joystick.app()` in your `index.server.js` file.
+
+/index.server.js
+
+```javascript
+import joystick from "@joystick.js/node";
+import api from "./api/index.js";
+import books_fixture from "./fixtures/books.js";
+
+joystick.app({
+  api,
+  fixtures: () => {
+    books_fixture();
+  },
+  routes: {
+    "/": (req = {}, res = {}) => {
+      res.status(200).send("Howdy");
+    },
+  },
+});
+```
+
+Unless specified using an [advanced object definition](node/routes/advanced-routes), by default, Joystick defines routes as HTTP GET routes (meaning they only support HTTP GET requests—all other request methods return a 404 response).
+
+Above, we've defined an `HTTP GET` route for the index page or `/`. Now that we have a call to `joystick.app()`, we can get our app running via the command line (from the root of the project you created with `joystick create <app_name>`):
+
+```bash
+    joystick start
+```
+
+The above will automatically start your app on port `2600`, making your app accessible in the browser at `http://localhost:2600`. When you visit this URL in a browser, you should see "Howdy" printed on screen.

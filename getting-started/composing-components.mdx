@@ -1,0 +1,53 @@
+---
+title: "Composing Components"
+---
+
+
+Component composition in Joystick describes combining together one or more "child" components into a parent component's rendered HTML. Composition enables building complex UIs while keeping your code clean and easy to maintain. All component composition is handled via the `component()` render method: a special function passed to the `render` function of a Joystick component.
+
+As an example, let's take the existing layout component we have at `/ui/layouts/app/index.js` and extract its `<nav></nav>` element into its own component at `/ui/components/navigation/index.js`:
+
+/ui/components/navigation/index.js
+
+```js
+    import joystick from '@joystick.js/ui';
+
+    const Navigation = joystick.component({
+      render: () => {
+        return `
+          <nav>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/another-page">Another Page</a></li>
+            </ul>
+          </nav>
+        `;
+      },
+    });
+
+    export default Navigation;
+```
+
+Now, we can import this component into our layout file and then render it using the `component()` render method:
+
+/ui/layouts/app/index.js
+```js
+    import joystick from '@joystick.js/ui';
+    import Navigation from '../../components/navigation/index.js';
+
+    const App = joystick.component({
+      render: ({ props, component }) => {
+        return `
+          <div class="app">
+            ${component(Navigation)}
+            ${component(props.page, props)}
+          </div>
+        `;
+      },
+    });
+
+    export default App;
+```
+
+Now, when we render our app, we'll see the HTML for the navigation component rendered above our page. If we add any CSS to our navigation (or any interactivity like DOM events), it will be properly scoped to the navigation component and the rendered instance.
+

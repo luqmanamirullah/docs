@@ -1,0 +1,59 @@
+---
+title: "Registering Your API"
+---
+
+
+In order for our getter and setter to work, we need to tell our `joystick.app()` instance about them. To do this, we're going to update the existing API schema file at `/api/index.js` and then pass that to `joystick.app()` to register it.
+
+/api/index.js
+```javascript
+
+    import book_getters from './books/getters.js';
+    import book_setters from './books/setters.js';
+
+    const api = {
+      getters: {
+        ...book_getters,
+      },
+      setters: {
+        ...book_setters
+      },
+    };
+
+    export default api;
+    ```
+
+Our API schema is itself just an object with two child properties: `getters` and `setters`. To those, we pass another object with each of our individual getter or setter definition (e.g., `books` or `update_book`). While we certainly _can_ just define all of our getters and setters directly in this schema file, in a non-trivial app, this will get messy quick (e.g., if we have to import other dependencies specific to an individual getter or setter).
+
+This way, we keep everything organized without having to overwhelm ourselves later. To put this to use, like we hinted at above, we need to pass the above schema file to `joystick.app()` to actually _register_ our API.
+
+/index.server.js
+
+```javascript
+    import joystick from '@joystick.js/node';
+    import api from './api/index.js';
+    import books_fixture from './fixtures/books.js';
+
+    joystick.app({
+      api,
+      fixtures: () => {
+        books_fixture();
+      },
+      routes: {
+        '/': (req = {}, res = {}) => {
+          res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+        '/another-page': (req = {}, res = {}) => {
+          res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+      },
+    });
+
+    ```
+In our `index.server.js` file, up at the top we import our `/api/index.js` file and then pass it directly to our options object for `joystick.app()`. Now, when we start up our app, behind the scenes Joystick will automatically register all of our getters and setters as routes (e.g., `/api/_getters/books` or `/api/_setters/update_book`).
+
+

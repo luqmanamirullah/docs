@@ -1,0 +1,236 @@
+---
+title: "Getting Data"
+---
+
+
+Now that we have access to an API, let's see how to interact with it on the client side of our app. To start, we're going to wire up a new component at `/ui/components/books_list/index.js` that will help us to render a list of books and then a page at `/ui/pages/books/index.js` that will act as the parent for that component.
+
+/ui/pages/books_list/index.js
+
+```javascript
+    import joystick from '@joystick.js/ui';
+
+    const BooksList = joystick.component({
+      render: ({ props, each }) => {
+        return `
+          <ul>
+            ${each(props?.books, (book = {}) => {
+              return `<li><a href="/books/${book._id}/edit">${book.title}</a> by ${book.author}</li>`;
+            })}
+          </ul>
+        `;
+      },
+    });
+
+    export default BooksList;
+    ```
+
+The purpose of this component is two-fold: first, we want to demonstrate passing props to a component, but also, showcase making a reusable component for rendering different data with the same UI. Here, we're rendering a string of HTML like we saw before, but now, we're using JavaScript destructuring on the component `instance` object passed to the `render()` function to "pluck off" the `props` passed to the component as well as the [`each()` render method](ui/component/render/render-methods/each).
+
+Like the name suggests, the `each()` render method helps us to iterate over an array of items, returning some HTML for each item. Here, for each item in `props.books`, we want to return an `<li></li>` tag. Notice that we're thinking ahead here and embedding a link we've yet to create at `/books/:book_id/edit` (we'll wire this up in a bit).
+
+Next, we're going to put this to use by rendering it into a parent page at `/ui/pages/books/index.js`. We'll utilize this component to split our list of books into two statuses: "unread" and "read."
+
+/ui/pages/books/index.js
+
+```javascript
+    import joystick from "joystick-ui-test";
+    import BooksList from "../../components/books_list/index.js";
+
+    const Books = joystick.component({
+      state: {
+        list: 'unread',
+      },
+      css: `
+        .tabs {
+          display: flex;
+        }
+
+        .tabs li {
+          cursor: pointer;
+          padding: 10px 15px;
+          background: #eee;
+          margin-right: 10px;
+        }
+
+        .tabs li:hover {
+          background: #ccc;
+        }
+
+        .tabs li.is-active {
+          background: #0099ff;
+          color: #fff;
+        }
+      `,
+      render: ({ state, component }) => {
+        return `
+          <h2>Books</h2>
+          <ul class="tabs">
+            <li data-tab="unread" class="${state.list === 'unread' ? 'is-active' : ''}">Unread</li>
+            <li data-tab="read" class="${state.list === 'read' ? 'is-active' : ''}">Read</li>
+          </ul>
+          ${component(BooksList, {
+            books: []
+          })}
+        `;
+      },
+    });
+
+    export default Books;
+    ```
+
+Bringing in our `BooksList` component, here, we're rendering that component using the `component()` render method we saw earlier in our `/ui/layouts/app/index.js` component. To it, we pass an object containing `props` we want to "pass down" to the component. For now, we've set `books` to an empty array (remember that internally, `BooksList` expects a `props.books` value). We'll replace this empty array with a value next.
+
+In addition to this, we've also introduced something new: up at the top of our component options, we've introduced a value `state` set to an object with a single property `list` set to `"unread"`. This is saying "set the default `state.list` value to 'unread'." We can see this being used down in our `render()` function to decide which of our `<ul class="tabs"></ul>` items gets the `is-active` class.
+
+To set this class, next, we need to add in a DOM event listener.
+
+/ui/pages/books/index.js
+
+```javascript
+    import joystick from "joystick-ui-test";
+    import BooksList from "../../components/books_list/index.js";
+
+    const Books = joystick.component({
+      state: {
+        list: 'unread',
+      },
+      css: `...`,
+      events: {
+        'click [data-tab]': (event, instance) => {
+          instance.set_state({ list: event.target.getAttribute('data-tab') });
+        },
+      },
+      render: ({ state, component }) => {
+        return `
+          <h2>Books</h2>
+          <ul class="tabs">
+            <li data-tab="unread" class="${state.list === 'unread' ? 'is-active' : ''}">Unread</li>
+            <li data-tab="read" class="${state.list === 'read' ? 'is-active' : ''}">Read</li>
+          </ul>
+          ${component(BooksList, {
+            books: []
+          })}
+        `;
+      },
+    });
+
+    export default Books;
+
+```
+On a Joystick component, event listeners are added via the `events` option. To this, we pass an object containing key/value pairs where the `key` is a string containing a DOM event to listen for, followed by a DOM selector separated by a space. When that pattern is matched in the DOM, the function assigned to that key is called by Joystick behind the scenes. To it, we're passed the DOM event that occurred and the current component instance.
+
+Here, we want to listen for a click event on all elements with a `data-tab` attribute. When that happens, we want to update our `state.list` value to equal to the `data-tab` value of the tab that was clicked. To do it, we call to `instance.set_state()`, passing in an object of state values to update. To get the tab value, we just use vanilla JavaScript to say `event.target.getAttribute('data-tab')` (Joystick doesn't modify the DOM event in any way—it relays the exact browser DOM event).
+
+With this, now when we click on our tabs, we'll see their styling flip to denote which tab is active. To make this actually useful, now, let's add in some data fetching, calling to the `books` getter we set up earlier.
+
+/ui/pages/books/index.js
+
+```javascript
+    import joystick from "joystick-ui-test";
+    import BooksList from "../../components/books_list/index.js";
+
+    const Books = joystick.component({
+      data: async (api = {}) => {
+        return {
+          books: await api.get('books')
+        };
+      },
+      state: { ... },
+      css: `...`,
+      events: { ... },
+      render: ({ data, state, component }) => {
+        return `
+          <h2>Books</h2>
+          <ul class="tabs">
+            <li data-tab="unread" class="${state.list === 'unread' ? 'is-active' : ''}">Unread</li>
+            <li data-tab="read" class="${state.list === 'read' ? 'is-active' : ''}">Read</li>
+          </ul>
+          ${component(BooksList, {
+            books: data?.books?.filter((book) => book.status === state.list)
+          })}
+        `;
+      },
+    });
+
+    export default Books;
+```
+To fetch data, all we need to do is add the `data` option to our component, passing a function that returns the data we need in our app. Behind the scenes, during server-side rendering, Joystick will pass a special object of methods to this function `api` which contains an `api.get()` (for calling a getter), `api.set()` (for calling a setter), and `api.fetch()` (for running a generic `fetch()` request).
+
+Though we're writing this code in the browser, this `data()` function will be executed in a server context (the methods on the `api` object passed in here are "server safe."). For our needs, we're going to call the `api.get()` method, passing the name of the getter we want to call on the server—in this case the `books` getter we defined earlier.
+
+Because `api.get()` returns a JavaScript Promise, we want to put the `async` keyword at the start of the function we set to `data` and then prepend the `await` keyword to our `api.get()` call.
+
+Behind the scenes, at render time, Joystick will fetch our data and pipe it throughout our component instance via `instance.data`. Down in our `render()` function here, we can see that we've added `data` to the list of values we're destructuring from the component `instance`.
+
+Because we expect our `books` getter to just return an array of books, we call to `data?.books?.filter()`, whittling down the list of books we received by their `status` field. This is where it all comes together: here, we're referencing the `state.list` value that we wired up via our call to `instance.set_state()` above to help us with the filtering.
+
+The result? Now, when we load our page, our data will automatically be fetched and passed down, filtered by the current value of `state.list` to our `BooksList` component and rendered on screen.
+
+## Adding /books to our navigation
+
+Before we wire up the route on our server to render this page, real quick, let's go add a link to our existing `/ui/components/navigation/index.js` component:
+
+/ui/components/navigation/index.js
+
+```javascript
+    import joystick from '@joystick.js/ui';
+
+    const Navigation = joystick.component({
+      render: ({ props, component }) => {
+        return `
+          <nav>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/another-page">Another Page</a></li>
+              <li><a href="/books">Books</a></li>
+            </ul>
+          </nav>
+        `;
+      },
+    });
+
+    export default Navigation;
+```
+
+Nothing much here, just an extra `<a></a>` tag to help us navigate around easier. Next, let's wire this up to a route on the server.
+
+## Rendering the books page
+
+Like we saw earlier, from our `index.server.js` file, we just need to add a path to our `routes` object and then handle the request by using `res.render()` to render our `/ui/pages/books/index.js` component:
+
+/index.server.js
+
+```javascript
+    import joystick from 'joystick-node-test';
+    import api from './api/index.js';
+    import books_fixture from './fixtures/books.js';
+
+    joystick.app({
+      api,
+      fixtures: () => {
+        books_fixture();
+      },
+      routes: {
+        '/': (req = {}, res = {}) => {
+          res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+        '/another-page': (req = {}, res = {}) => {
+          res.render('ui/pages/index/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+        '/books': (req = {}, res = {}) => {
+          res.render('ui/pages/books/index.js', {
+            layout: 'ui/layouts/app/index.js',
+          });
+        },
+      },
+    });
+
+    ```
+Identical to what we saw before, down at the bottom of our `routes` object passed as part of the options for `joystick.app()`, we've added a new route `/books` and inside, we call to `res.render()` passing the path for our new `/ui/pages/books/index.js` component and then re-use our existing layout at `/ui/layouts/app/index.js`. That's all we need. Now, when we visit `http://localhost:2600/books` back in the browser, we should see the list of books our fixture created earlier in the tutorial.
+
+

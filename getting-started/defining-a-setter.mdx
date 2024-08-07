@@ -1,0 +1,72 @@
+---
+title: "Defining A Setter"
+---
+
+
+As their name implies, in a Joystick app, setters are the part of our API responsible for setting data. Setters can set data on any data source (e.g., a third-party API or a static file), though, typically your data source will be one of the databases you've connected to your app.
+
+As an example, we're going to wire up a setter that updates the test data we created earlier via our fixture. In the `/api/books` folder we created in the previous lesson, we want to create another file `setters.js`:
+
+/api/books/setters.js
+```javascript
+    const setters = {
+      update_book: {
+        input: {
+          book_id: {
+            type: 'string',
+            required: true,
+          },
+          title: {
+            type: 'string',
+            required: true,
+          },
+          author: {
+            type: 'string',
+            required: true,
+          },
+        },
+        set: (input = {}) => {
+          return process.databases.mongodb.collection('books').updateOne(
+            { _id: input.book_id },
+            {
+              $set: {
+                title: input.title,
+                author: input.author,
+              }
+            }
+          );
+    
+          /* PostgreSQL
+             return process.databases.postgresql.query(`
+               UPDATE books
+               SET title = $1, author = $2
+               WHERE book_id = $3
+             `, [
+               input.title,
+               input.author,
+               input.book_id,
+             ]);
+          */
+        },
+      },
+    };
+    
+    export default setters;
+  ```
+    
+
+Above, we're following a nearly-identical structure to the getter that we defined in the previous lesson. Here, we've introduced something new, though. With a setter, we're anticipating user input from the client (browser). While we _could_ just blindly hand that input off to our database, it's wise to do some validation on what we've received.
+
+Here, we've added an `input` field which allows us to [define a schema for the input data](node/app/api/validating-input) we receive from the client. When a request is made for this setter `update_book`, before any code runs, the user's input will be validated against the `input` schema we've defined here.
+
+#### Input validation works with getters, too.
+
+Though we skipped it in the previous lesson, the exact same `input` validation we've covered here will work with a getter endpoint.
+
+Once it passes, to define the behavior for our setter, we add a method to our setter object `set()` which, similar to our getter, runs arbitrary code to "set" or update a data source. Here, we're running an update via MongoDB (with a PostgreSQL example commented out below) to change the title and author of the book matching the `input.book_id` value to whatever we've been passed from the client.
+
+Because we've already validated that the data we've received for each field has a `type` of `string` _and_ exists, we can safely pass it off to our database.
+
+Before we can put this to use, we have one more step: registering our API.
+
+
